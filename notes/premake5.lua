@@ -1,0 +1,62 @@
+workspace "notes"
+architecture "x64"
+configurations
+{
+  "Debug"
+}
+targetdir("../bin/")
+objdir("../bin-int/")
+cppdialect "C++23"
+
+include "../hobot/"
+
+project "notes"
+  kind "ConsoleApp"
+  language "C++"
+  staticruntime "On"
+
+  files
+  {
+    "src/**.cpp",
+  }
+
+  shaderDir = path.getrelative("%{prj.location}/../bin", "%{prj.location}/res/shaders/") --Relative to the executable
+
+  defines
+  {
+    "SHADERS_DIR=\"" .. shaderDir .. "/\"",
+  }
+
+  links
+  {
+    "hobot",
+  }
+
+  includedirs
+  {
+    "src/",
+    "../hobot/include",
+    "../hobot/vendors/glm-1.0.1",
+    "../hobot/src/",
+  }
+
+  filter "system:windows"
+    defines
+    {
+      "_HOBOT_WINDOWS"
+    }
+  filter "system:linux"
+    defines
+    {
+      "_HOBOT_LINUX"
+    }
+
+  filter "configurations:Debug"
+    runtime "Debug"
+    symbols "on"
+    defines "_HOBOT_DEBUG"
+
+  filter "configurations:Release"
+    runtime "Release"
+    optimize "on"
+    defines "_HOBOT_RELEASE"

@@ -1,0 +1,9 @@
+# Files
+compile_commands.json
+Makefile
+*.make
+
+# Dirs
+bin/
+bin-int/
+.cache/
