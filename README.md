@@ -3,3 +3,6 @@
 
 ## Sample
 * For a sample app that uses hobot, check out `sundemo`
+
+## Vendors
+* Consult with `hobot/vendors/`
