@@ -10,8 +10,8 @@ project  "hobot"
   -- DLL feature that changes the way functions are addressed
   -- Because DLL instructions dont change but get loaded into a ton of different VASs
 
-  pchheader "src/pch/pch.h"
-  pchsource "src/pch/pch.cpp"
+  pchheader "src/ht_pch/pch.h"
+  pchsource "src/ht_pch/pch.cpp"
 
   files{
     "src/**.cpp",

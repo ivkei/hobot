@@ -3,9 +3,9 @@
 #include<memory>
 #include<functional>
 
-#include"api.h"
-#include"window/windowprops.h"
-#include"renderer/layoutelement.h"
+#include"ht_api.h"
+#include"ht_window/windowprops.h"
+#include"ht_renderer/layoutelement.h"
 
 #include"glm/vec4.hpp"
 #include"glm/mat4x4.hpp"

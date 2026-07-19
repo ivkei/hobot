@@ -1,8 +1,8 @@
-#include"pch/pch.h"
+#include"ht_pch/pch.h"
 
-#include"shader.h"
+#include"ht_glutils/shader/shader.h"
 
-#include"glutils/debug/debug.h"
+#include"ht_glutils/debug/debug.h"
 
 #include"GL/glew.h"
 

@@ -2,8 +2,8 @@
 
 #include"GL/glew.h"
 
-#include"glutils/debug/debug.h"
-#include"logger.h"
+#include"ht_glutils/debug/debug.h"
+#include"ht_logger.h"
 
 #include<vector>
 

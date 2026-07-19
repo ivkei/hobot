@@ -1,12 +1,12 @@
-#include"pch/pch.h"
+#include"ht_pch/pch.h"
 
-#include"renderer.h"
+#include"ht_renderer/renderer.h"
 
 #include"GL/glew.h"
 
-#include"glutils/debug/debug.h"
-#include"glutils/shader/shader.h"
-#include"glutils/vao/vao.h"
+#include"ht_glutils/debug/debug.h"
+#include"ht_glutils/shader/shader.h"
+#include"ht_glutils/vao/vao.h"
 
 #define PI 3.141592653589793115997963468544185161590576171875
 

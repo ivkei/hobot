@@ -1,6 +1,6 @@
-#include"pch/pch.h"
+#include"ht_pch/pch.h"
 
-#include"debug.h"
+#include"ht_glutils/debug/debug.h"
 
 #include"GL/glew.h"
 
