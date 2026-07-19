@@ -9,11 +9,14 @@ namespace hobot{
 class VAO{
 private:
   unsigned int _id;
+  bool _valid = false;
 public:
   VAO();
   ~VAO();
 
-  void AddLayout(const VBOLayout& layout) const;
+  void AddLayout(const VBOLayout& layout);
+
+  bool IsValid() const { return _valid; }
 
   void Bind() const;
   void Unbind() const;

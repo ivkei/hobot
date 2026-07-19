@@ -4,9 +4,7 @@
 
 App::App()
 : _pWindow(std::make_unique<hobot::Window>(hobot::WindowProps(960, 540, "notes", -1, true))){
-  _pWindow->SetVSync(false);
-  _pWindow->GetRenderer().VertShader();
-  _pWindow->GetRenderer().FragShader();
+  _pWindow->SetVSync(true);
 }
 
 App::~App(){

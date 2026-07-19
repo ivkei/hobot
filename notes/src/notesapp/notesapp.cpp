@@ -5,8 +5,6 @@
 NotesApp::NotesApp()
 : _pWindow(std::make_unique<hobot::Window>(hobot::WindowProps(960, 540, "notes", -1, true))){
   _pWindow->SetVSync(false);
-  _pWindow->GetRenderer().VertShader();
-  _pWindow->GetRenderer().FragShader();
 }
 
 NotesApp::~NotesApp(){
@@ -20,6 +18,34 @@ void NotesApp::Run(){
   //DeltaSeconds
   auto lastFrame = cnow();
   float deltaSeconds;
+
+  //Test raw
+  std::vector<float> rawVbo = {
+    -0.2f, 0.5f, 1, 1, 1, 1,
+    -0.025f, 0.0f, 1, 1, 1, 1,
+    0.2f, 0.0f, 1, 1, 1, 1,
+    -0.3f, -0.1f, 1, 1, 1, 1
+  };
+  std::vector<unsigned int> indices = {
+    0, 1, 2,
+    1, 2, 3
+  };
+  //Test raw
+  std::vector<float> rawVbo1 = {
+    0.0f, -0.5f, 1, 1, 1, 1,
+    0.2f, -0.25f, 1, 1, 1, 1,
+    -0.2f, -0.25f, 1, 1, 1, 1,
+  };
+  std::vector<unsigned int> indices1 = {
+    0, 1, 2,
+  };
+
+  renderer.RawLayout({
+      hobot::LayoutElement(hobot::Type::Float, 2),
+      hobot::LayoutElement(hobot::Type::Float, 4),
+  });
+  renderer.FragShader(hobot::Renderer::DefaultFragShader, false, false);
+  renderer.VertShader(hobot::Renderer::DefaultVertShader, false, false);
 
   //FPS
   float timer = 0;
@@ -39,6 +65,9 @@ void NotesApp::Run(){
     }
 
     renderer.Clear({0.1f, 0.1f, 0.1f, 1.0f});
+
+    renderer.Raw(rawVbo.data(), rawVbo.size()*sizeof(float), indices);
+    renderer.Raw(rawVbo1.data(), rawVbo1.size()*sizeof(float), indices1);
 
     glm::vec2 pos1 = {0.2f, 0.5f};
     glm::vec2 pos2 = {0.025f, 0.0f};

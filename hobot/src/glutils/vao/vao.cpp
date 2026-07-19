@@ -16,12 +16,12 @@ VAO::~VAO(){
   GLCall(glDeleteVertexArrays(1, &_id));
 }
 
-void VAO::AddLayout(const VBOLayout& layout) const{
+void VAO::AddLayout(const VBOLayout& layout){
   this->Bind();
 
   const auto& elems = layout.GetElements();
   unsigned int stride = layout.GetStride();
-  long long offset = 0;
+  long long offset = static_cast<long long>(layout.GetOffset());
 
   for (int i = 0; i < elems.size(); i++){
     const auto& elem = elems[i];
@@ -29,6 +29,8 @@ void VAO::AddLayout(const VBOLayout& layout) const{
     GLCall(glEnableVertexAttribArray(i));
     offset+=elem.size;
   }
+
+  if (elems.size() != 0) _valid = true;
 }
 
 void VAO::Bind() const{

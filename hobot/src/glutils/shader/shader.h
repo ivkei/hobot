@@ -19,8 +19,8 @@ class Shader{
   Shader();
   ~Shader();
 
-  void Frag(const char* string, bool isPath = false);
-  void Vert(const char* string, bool isPath = false);
+  void Frag(const char* string, bool isPath = false, bool recompile = true);
+  void Vert(const char* string, bool isPath = false, bool recompile = true);
   void Bind() const;
   void Unbind() const;
 

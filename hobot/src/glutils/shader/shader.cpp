@@ -65,7 +65,7 @@ Shader::~Shader(){
   GLCall(glDeleteProgram(_id));
 }
 
-void Shader::Frag(const char* string, bool isPath){
+void Shader::Frag(const char* string, bool isPath, bool recompile){
   std::string src;
   if (isPath){
     src = ReadRel(string);
@@ -75,14 +75,14 @@ void Shader::Frag(const char* string, bool isPath){
 
   _fid = CreateShader(GL_FRAGMENT_SHADER, src);
 
-  if (this->IsValid()){
+  if (this->IsValid() && recompile){
     LinkProgram(_id, _vid, _fid);
   }
 
   _locationCache.clear();
 }
 
-void Shader::Vert(const char* string, bool isPath){
+void Shader::Vert(const char* string, bool isPath, bool recompile){
   std::string src;
   if (isPath){
     src = ReadRel(string);
@@ -92,7 +92,7 @@ void Shader::Vert(const char* string, bool isPath){
 
   _vid = CreateShader(GL_VERTEX_SHADER, src);
 
-  if (this->IsValid()){
+  if (this->IsValid() && recompile){
     LinkProgram(_id, _vid, _fid);
   }
 

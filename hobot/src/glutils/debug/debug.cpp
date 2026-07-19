@@ -84,7 +84,7 @@ static void GLDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum
   const char* severityStr = GLSeverityToString(severity);
 
   if (std::strcmp(typeStr, "OTHER")) { //Filter some info
-    HT_LOG_ERROR(id, ": ", typeStr, " of ", severity, ", raised from ", sourceStr, ": ", msg);
+    HT_LOG_ERROR(id, ": ", typeStr, " of ", severityStr, ", raised from ", sourceStr, ": ", msg);
   }
 }
 

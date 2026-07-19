@@ -5,6 +5,7 @@
 
 #include"api.h"
 #include"window/windowprops.h"
+#include"renderer/layoutelement.h"
 
 #include"glm/vec4.hpp"
 #include"glm/mat4x4.hpp"
@@ -32,6 +33,36 @@ public:
   ~Renderer();
 
   void Render() const;
+  void Clear(glm::vec4 color = glm::vec4(0, 0, 0, 1)) const;
+
+  bool IsValid() const;
+  //Both start and dimensions are between 0 and 1, thats because its independent of window's size
+  void SetViewport(glm::vec2 start, glm::vec2 dimensions) const; //Setter yet const as its needed to be called from const references
+  glm::vec4 GetViewport() const;
+  void _SetWindowProps(WindowProps props);
+
+  //Custom pipeline
+  //Notice that it accumulates, and on render clears (no need to adjust indices for past objects, treat each as first)
+  //Size is for data's size in bytes
+  void Raw(const void* data, unsigned int size, const std::vector<unsigned int>& indices) const;
+  void RawLayout(const std::vector<LayoutElement>& layout) const;
+
+  static const char* DefaultFragShader;
+  static const char* DefaultVertShader;
+
+  void Uniform(const char* name, int i, bool fixed = true) const;
+  void Uniform(const char* name, float f, bool fixed = true) const;
+  void Uniform(const char* name, glm::mat4 m, bool fixed = true) const;
+
+  //Interprets first arg as source if second is false, otherwise parses a file via a file path, use hobot::GetExecDir() if needed
+  //Path is relative to exec file
+  //Fixed is for pre-made functions such as trig, fixed=false implies shader source for Raw()
+  //Make recompile=false in case you dont want to recompile after changing shader
+  //Shaders are set to default by default
+  void FragShader(const char* string = DefaultFragShader, bool isPath = false, bool fixed = true, bool recompile = true) const;
+  void VertShader(const char* string = DefaultVertShader, bool isPath = false, bool fixed = true, bool recompile = true) const;
+
+  //"Fixed-function pipeline"
 
   //pos = bottom-left vertex pos, dimensions = width, height
   void Quad(glm::vec2 pos, glm::vec2 dimensions, glm::vec4 color = glm::vec4(1)) const;
@@ -55,26 +86,6 @@ public:
   void Circle(glm::vec2 pos, float r, int vertices, glm::vec4 centerColor, glm::vec4 circumferenceColor) const;
   //pos = center of the circle coordinates
   void Circle(glm::vec2 pos, float r, int vertices, bool isRainbow) const;
-
-  static const char* DefaultFragShader;
-  static const char* DefaultVertShader;
-
-  //Interprets first arg as source if second is false, otherwise parses a file via a file path, use SGE::GetExecDir() if needed
-  void FragShader(const char* string = DefaultFragShader, bool isPath = false) const;
-  //Interprets first arg as source if second is false, otherwise parses a file via a file path, use SGE::GetExecDir() if needed
-  void VertShader(const char* string = DefaultVertShader, bool isPath = false) const;
-
-  void Uniform(const char* name, int i) const;
-  void Uniform(const char* name, float f) const;
-  void Uniform(const char* name, glm::mat4 m) const;
-
-  void Clear(glm::vec4 color = glm::vec4(0, 0, 0, 1)) const;
-
-  bool IsValid() const;
-  //Both start and dimensions are between 0 and 1, thats because its independent of window's size
-  void SetViewport(glm::vec2 start, glm::vec2 dimensions) const; //Setter yet const as its needed to be called from const references
-  glm::vec4 GetViewport() const;
-  void _SetWindowProps(WindowProps props);
 };
 
 }

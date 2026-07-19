@@ -8,3 +8,5 @@
 #include"renderer/renderer.h"
 #include"keys.h"
 #include"window/windowprops.h"
+#include"renderer/layoutelement.h"
+#include"types.h"

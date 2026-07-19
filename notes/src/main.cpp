@@ -8,5 +8,5 @@ extern std::unique_ptr<hobot::Application> hobot::CreateApplication(){
 
 HOBOT_ENTRY_POINT
 
-//TODO: After finished section make into a batch renderer (abstract away as much as possible)
 //TODO: continue with shaders chapter
+//TODO: more abstractions
