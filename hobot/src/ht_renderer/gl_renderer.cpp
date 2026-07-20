@@ -27,6 +27,7 @@ struct Renderer::PImpl{
   void* pRawData = nullptr;
   unsigned int rawSize = 0;
   std::vector<unsigned int> rawIbo;
+  int rawMaxIndex = 0; //TODO: finish  this, make it 1-indexed
   Shader rawShader;
   VAO rawVao;
   VBOLayout rawLayout;
@@ -128,6 +129,7 @@ void Renderer::Render() const{
   const Shader& rawShader = _pImpl->rawShader;
   void*& pRawData = _pImpl->pRawData;
   unsigned int& rawSize = _pImpl->rawSize;
+  int& rawLastIndex = _pImpl->rawLastIndex;
 
   if (clear){
     GLCall(glClear(GL_COLOR_BUFFER_BIT));
@@ -168,6 +170,11 @@ void Renderer::Render() const{
     _pImpl->rawLayout.SetOffset(fixedVbo.size()*sizeof(Vertex)); //offset within buffer
     rawVao.AddLayout(_pImpl->rawLayout);
 
+    HT_LOG_INFO("Offset: ", fixedVbo.size()*sizeof(Vertex));
+    HT_LOG_INFO("Vertices (Fixed): ", fixedVbo.size());
+    HT_LOG_INFO("Vertices (Raw): ", rawSize/(sizeof(float)*6));
+    HT_LOG_INFO("Indices (Raw): ", rawIbo.size());
+
     glDrawElements(GL_TRIANGLES, rawIbo.size(), GL_UNSIGNED_INT, NULL);
 
     rawShader.Unbind();
@@ -176,6 +183,7 @@ void Renderer::Render() const{
     //Next batch preparation
     rawSize = 0;
     rawIbo.clear();
+    rawLastIndex = -1;
   }
 
   //Prepare for the next batch
@@ -190,7 +198,7 @@ void Renderer::Render() const{
 }
 
 static float AtFor2Pts(float x, glm::vec2 p1, glm::vec2 p2){
-  return (p1.x*p2.x - p1.y*p2.y-x*(p2.y-p1.y))/(p1.x-p2.x);
+  return (p1.x != p2.x) && (p1.x*p2.x - p1.y*p2.y-x*(p2.y-p1.y))/(p1.x-p2.x);
 }
 
 //If 2 points divide the remaining 2 points so that they are on opposite sides, those 2 endpts can be used to draw 2 triangles no matter what order
@@ -415,9 +423,13 @@ glm::vec4 Renderer::GetViewport() const{
 //Custom pipeline
 void Renderer::Raw(const void* data, unsigned int size, const std::vector<unsigned int>& indices) const{
   //Raw IBO
-  int n = _pImpl->rawIbo.size();
+  int& lastIndex = _pImpl->rawLastIndex;
+  int newLastIndex = lastIndex;
+
   for (int i = 0; i < indices.size(); i++){
-    _pImpl->rawIbo.emplace_back(indices[i]+n);
+    HT_LOG_INFO(indices[i]+lastIndex);
+    newLastIndex = std::max(newLastIndex, (int)indices[i]+lastIndex);
+    _pImpl->rawIbo.emplace_back(indices[i]+lastIndex);
   }
 
   auto oldSize = _pImpl->rawSize;
