@@ -27,7 +27,7 @@ struct Renderer::PImpl{
   void* pRawData = nullptr;
   unsigned int rawSize = 0;
   std::vector<unsigned int> rawIbo;
-  int rawMaxIndex = 0; //TODO: finish  this, make it 1-indexed
+  unsigned int rawMaxIndex = 0; //1-indexed!
   Shader rawShader;
   VAO rawVao;
   VBOLayout rawLayout;
@@ -129,7 +129,7 @@ void Renderer::Render() const{
   const Shader& rawShader = _pImpl->rawShader;
   void*& pRawData = _pImpl->pRawData;
   unsigned int& rawSize = _pImpl->rawSize;
-  int& rawLastIndex = _pImpl->rawLastIndex;
+  unsigned int& rawMaxIndex = _pImpl->rawMaxIndex;
 
   if (clear){
     GLCall(glClear(GL_COLOR_BUFFER_BIT));
@@ -170,20 +170,49 @@ void Renderer::Render() const{
     _pImpl->rawLayout.SetOffset(fixedVbo.size()*sizeof(Vertex)); //offset within buffer
     rawVao.AddLayout(_pImpl->rawLayout);
 
-    HT_LOG_INFO("Offset: ", fixedVbo.size()*sizeof(Vertex));
-    HT_LOG_INFO("Vertices (Fixed): ", fixedVbo.size());
-    HT_LOG_INFO("Vertices (Raw): ", rawSize/(sizeof(float)*6));
-    HT_LOG_INFO("Indices (Raw): ", rawIbo.size());
+    //TODO: Debug from here
+
+    //HT_LOG_INFO("Offset: ", fixedVbo.size()*sizeof(Vertex));
+    //HT_LOG_INFO("Vertices (Fixed): ", fixedVbo.size()*sizeof(Vertex));
+    //HT_LOG_INFO("Vertices (Raw): ", rawSize/(sizeof(float)*6));
+    //HT_LOG_INFO("Indices (Raw): ", rawIbo.size());
+
+    ////HT_LOG_INFO("---RawData---");
+    ////for (int i = 0; i < rawSize/sizeof(float); i++){
+    ////  HT_LOG_INFO(*(float*)((char*)pRawData+i*sizeof(float)));
+    ////}
+
+    ////HT_LOG_INFO("---Raw Indices---");
+    ////for (int i = 0; i < rawIbo.size(); i++){
+    ////  HT_LOG_INFO(rawIbo[i]);
+    ////}
+
+    //int rawIboSize = rawIbo.size()*sizeof(unsigned int);
+    //void* pTData = malloc(rawIboSize);
+    //glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, fixedIbo.size()*sizeof(unsigned int), rawIboSize, pTData);
+    //HT_LOG_INFO("---IBO (Raw GPU side)---");
+    //for (int i = 0; i < rawIbo.size(); i++){
+    //  HT_LOG_INFO("It: ", i);
+    //  HT_LOG_INFO("Is ", *(unsigned int*)((char*)pTData+i*sizeof(unsigned int)), " Should be ", rawIbo[i]);
+    //}
+
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    //glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, pTData);
+
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _pImpl->iboID);
+    //free(pTData);
+
+    //TODO: upto here
 
     glDrawElements(GL_TRIANGLES, rawIbo.size(), GL_UNSIGNED_INT, NULL);
-
     rawShader.Unbind();
     rawVao.Unbind();
 
     //Next batch preparation
     rawSize = 0;
     rawIbo.clear();
-    rawLastIndex = -1;
+    rawMaxIndex = 0;
   }
 
   //Prepare for the next batch
@@ -423,14 +452,15 @@ glm::vec4 Renderer::GetViewport() const{
 //Custom pipeline
 void Renderer::Raw(const void* data, unsigned int size, const std::vector<unsigned int>& indices) const{
   //Raw IBO
-  int& lastIndex = _pImpl->rawLastIndex;
-  int newLastIndex = lastIndex;
+  unsigned int& maxIndex = _pImpl->rawMaxIndex;
+  unsigned int newMaxIndex = maxIndex;
 
   for (int i = 0; i < indices.size(); i++){
-    HT_LOG_INFO(indices[i]+lastIndex);
-    newLastIndex = std::max(newLastIndex, (int)indices[i]+lastIndex);
-    _pImpl->rawIbo.emplace_back(indices[i]+lastIndex);
+    newMaxIndex = std::max(newMaxIndex, indices[i]+maxIndex);
+    _pImpl->rawIbo.emplace_back(indices[i]+maxIndex);
   }
+
+  maxIndex = newMaxIndex+1;
 
   auto oldSize = _pImpl->rawSize;
   _pImpl->rawSize += size;
