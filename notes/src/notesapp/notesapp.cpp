@@ -75,7 +75,7 @@ void NotesApp::Run(){
     glm::vec2 pos4 = {0.3f, -0.1f};
     renderer.Quad(pos1, pos2, pos3, pos4, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f});
     //renderer.Quad({0, 0}, {0, 1}, pos3, pos4, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, true); //OrderedMode testing
-    //renderer.Circle((pos1+pos2+pos3+pos4)/4.0f, 0.01f, 3, {0.8f, 0.8f, 0.8f, 1.0f}); //TODO: this toggles raw draw (bad)
+    //renderer.Circle((pos1+pos2+pos3+pos4)/4.0f, 0.01f, 3, {0.8f, 0.8f, 0.8f, 1.0f});
 
     renderer.Render();
     _pWindow->PollEvents();

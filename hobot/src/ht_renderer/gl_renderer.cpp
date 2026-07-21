@@ -170,42 +170,7 @@ void Renderer::Render() const{
     _pImpl->rawLayout.SetOffset(fixedVbo.size()*sizeof(Vertex)); //offset within buffer
     rawVao.AddLayout(_pImpl->rawLayout);
 
-    //TODO: Debug from here
-
-    //HT_LOG_INFO("Offset: ", fixedVbo.size()*sizeof(Vertex));
-    //HT_LOG_INFO("Vertices (Fixed): ", fixedVbo.size()*sizeof(Vertex));
-    //HT_LOG_INFO("Vertices (Raw): ", rawSize/(sizeof(float)*6));
-    //HT_LOG_INFO("Indices (Raw): ", rawIbo.size());
-
-    ////HT_LOG_INFO("---RawData---");
-    ////for (int i = 0; i < rawSize/sizeof(float); i++){
-    ////  HT_LOG_INFO(*(float*)((char*)pRawData+i*sizeof(float)));
-    ////}
-
-    ////HT_LOG_INFO("---Raw Indices---");
-    ////for (int i = 0; i < rawIbo.size(); i++){
-    ////  HT_LOG_INFO(rawIbo[i]);
-    ////}
-
-    //int rawIboSize = rawIbo.size()*sizeof(unsigned int);
-    //void* pTData = malloc(rawIboSize);
-    //glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, fixedIbo.size()*sizeof(unsigned int), rawIboSize, pTData);
-    //HT_LOG_INFO("---IBO (Raw GPU side)---");
-    //for (int i = 0; i < rawIbo.size(); i++){
-    //  HT_LOG_INFO("It: ", i);
-    //  HT_LOG_INFO("Is ", *(unsigned int*)((char*)pTData+i*sizeof(unsigned int)), " Should be ", rawIbo[i]);
-    //}
-
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    //glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, pTData);
-
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _pImpl->iboID);
-    //free(pTData);
-
-    //TODO: upto here
-
-    glDrawElements(GL_TRIANGLES, rawIbo.size(), GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, rawIbo.size(), GL_UNSIGNED_INT, (void*)(fixedIbo.size()*sizeof(unsigned int)));
     rawShader.Unbind();
     rawVao.Unbind();
 
