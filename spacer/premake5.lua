@@ -1,4 +1,4 @@
-workspace "asteroids"
+workspace "spacer"
 architecture "x64"
 configurations
 {
@@ -11,7 +11,7 @@ cppdialect "C++23"
 
 include "../hobot/"
 
-project "asteroids"
+project "spacer"
   kind "ConsoleApp"
   language "C++"
   staticruntime "On"
