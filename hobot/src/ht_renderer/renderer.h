@@ -80,12 +80,14 @@ public:
   void Trig(glm::vec2 vertexPos0, glm::vec2 vertexPos1, glm::vec2 vertexPos2,
             glm::vec4 vertexColor0, glm::vec4 vertexColor1, glm::vec4 vertexColor2) const;
 
+  //It really draws regular polygons
+  //rotation in rads
   //pos = center of the circle coordinates
-  void Circle(glm::vec2 pos, float r, int vertices = 30, glm::vec4 color = glm::vec4(1)) const;
+  void Circle(glm::vec2 pos, float r, int vertices = 30, glm::vec4 color = glm::vec4(1), float rotation = 0) const;
   //pos = center of the circle coordinates
-  void Circle(glm::vec2 pos, float r, int vertices, glm::vec4 centerColor, glm::vec4 circumferenceColor) const;
+  void Circle(glm::vec2 pos, float r, int vertices, glm::vec4 centerColor, glm::vec4 circumferenceColor, float rotation = 0) const;
   //pos = center of the circle coordinates
-  void Circle(glm::vec2 pos, float r, int vertices, bool isRainbow) const;
+  void Circle(glm::vec2 pos, float r, int vertices, bool isRainbow = false, float rotation = 0) const;
 };
 
 }

@@ -13,6 +13,7 @@ namespace hobot{
 static std::unordered_map<Window*, GLFWwindow*> addressToWindow;
 
 static std::unordered_map<int, std::function<void()>> glfwKeyToFunc;
+static std::unordered_map<int, bool> glfwKeysHeld;
 
 //Returns -1 if invalid
 static int KeyToGLFW(Key key){
@@ -27,9 +28,12 @@ static int KeyToGLFW(Key key){
   }
 }
 
+//Otherwise jerky motions due to OS specific timings
 static void KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods){
-  if (action == GLFW_PRESS && glfwKeyToFunc.contains(key)){
-    glfwKeyToFunc.at(key)();
+  if ((action == GLFW_PRESS) && glfwKeysHeld.contains(key)){
+    glfwKeysHeld[key] = true;
+  } else if (action == GLFW_RELEASE && glfwKeysHeld.contains(key)){
+    glfwKeysHeld[key] = false;
   }
 }
 
@@ -124,6 +128,8 @@ void Window::SetCallback(Key key, std::function<void()> callback){
     glfwKeyToFunc.erase(glfwKey);
   }
   glfwKeyToFunc.emplace(glfwKey, callback);
+
+  if (!glfwKeysHeld.contains(glfwKey)) glfwKeysHeld.emplace(glfwKey, false);
 }
 void Window::DelCallback(Key key){
   int glfwKey = KeyToGLFW(key);
@@ -131,6 +137,7 @@ void Window::DelCallback(Key key){
   if (glfwKeyToFunc.contains(glfwKey)){
     glfwKeyToFunc.erase(glfwKey);
   }
+  if (glfwKeysHeld.contains(glfwKey)) glfwKeysHeld.erase(glfwKey);
 }
 bool Window::ShouldTerminate(bool should){
   GLFWwindow* pWindow = addressToWindow.at(this);
@@ -144,6 +151,13 @@ void Window::SwapBuffers(){
 void Window::PollEvents(){
   GLFWwindow* pWindow = addressToWindow.at(this);
   glfwPollEvents();
+
+  //Handle key callbacks
+  for (auto& i : glfwKeysHeld){
+    if (i.second){
+      if (glfwKeyToFunc.contains(i.first)) glfwKeyToFunc[i.first]();
+    }
+  }
 }
 
 void Window::SetProps(WindowProps props){

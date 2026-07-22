@@ -268,10 +268,10 @@ static glm::vec4 RadsToColor(float rads){
   }
 }
 
-static void PushCircle(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, glm::vec2 center, float r, int iters, glm::vec4 centerColor, glm::vec4 circumColor, bool rainbowCircum){
+static void PushCircle(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, glm::vec2 center, float r, int iters, glm::vec4 centerColor, glm::vec4 circumColor, bool rainbowCircum, float rotation){
   for (int i = 0; i < iters; i++){
-    float angle1 = ((float)i/(float)iters)*2.0f*PI;
-    float angle2 = ((float)(i+1)/(float)iters)*2.0f*PI;
+    float angle1 = ((float)i/(float)iters)*2.0f*PI + (rotation);
+    float angle2 = ((float)(i+1)/(float)iters)*2.0f*PI + (rotation);
     glm::vec2 p1{center.x+std::cos(angle1)*r,center.y+std::sin(angle1)*r}, p2{center.x+std::cos(angle2)*r,center.y+std::sin(angle2)*r};
 
     glm::vec4 c1, c2;
@@ -306,16 +306,16 @@ void Renderer::Trig(glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pos3,
 }
 
 //pos = center of the circle coordinates
-void Renderer::Circle(glm::vec2 pos, float r, int vertices, glm::vec4 color) const{
-  PushCircle(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, color, color, false);
+void Renderer::Circle(glm::vec2 pos, float r, int vertices, glm::vec4 color, float rotation) const{
+  PushCircle(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, color, color, false, rotation);
 }
 //pos = center of the circle coordinates
-void Renderer::Circle(glm::vec2 pos, float r, int vertices, glm::vec4 centerColor, glm::vec4 circumColor) const{
-  PushCircle(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, centerColor, circumColor, false);
+void Renderer::Circle(glm::vec2 pos, float r, int vertices, glm::vec4 centerColor, glm::vec4 circumColor, float rotation) const{
+  PushCircle(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, centerColor, circumColor, false, rotation);
 }
 //pos = center of the circle coordinates
-void Renderer::Circle(glm::vec2 pos, float r, int vertices, bool isRainbow) const{
-  PushCircle(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, glm::vec4(1, 1, 1, 1), glm::vec4(0), true);
+void Renderer::Circle(glm::vec2 pos, float r, int vertices, bool isRainbow, float rotation) const{
+  PushCircle(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, glm::vec4(1, 1, 1, 1), glm::vec4(0), true, rotation);
 }
 
 void Renderer::FragShader(const char* string, bool isPath, bool fixed, bool recompile) const{

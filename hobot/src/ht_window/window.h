@@ -31,7 +31,7 @@ public:
   ~Window();
 
   void Bind(); //Binds the context, no need to call unless multithreaded context
-  void SetCallback(Key, std::function<void()> callback); //Overwrites callbacks
+  void SetCallback(Key, std::function<void()> callback); //Overwrites callbacks, and notice that callback is called on repeat
   void DelCallback(Key);
   bool ShouldTerminate(bool should = false); //Getter and setter
   void SwapBuffers();
