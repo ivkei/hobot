@@ -3,7 +3,7 @@
 #include"render/render.h"
 
 hobot::WindowProps Game::GetWindowProps(){
-  return {1280, 720, "asteroids", -1, true};
+  return {1280, 720, "spacer", -1, false};
 }
 
 //Field(glm::vec2 starVelocity, glm::vec2 initShipPos, glm::vec2 initShipDirection, float initShipSpeed,
