@@ -1,4 +1,4 @@
-workspace "spacer"
+workspace "kessler"
 architecture "x64"
 configurations
 {
@@ -11,7 +11,7 @@ cppdialect "C++23"
 
 include "../hobot/"
 
-project "spacer"
+project "kessler"
   kind "ConsoleApp"
   language "C++"
   staticruntime "On"
