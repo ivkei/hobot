@@ -29,4 +29,5 @@ struct Asteroids{
   float angularSpeedFactorAfterDeststruction;
   int maxBreakCapacity;
   float breakCapacityStopChance;
+  float projectileKnockback;
 };

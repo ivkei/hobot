@@ -16,7 +16,7 @@ static Asteroids GetInitAsteroids(){
   return {{}, {0.5f, 0.5f, 0.5f, 1.0f}, 100, 1, 0.2f, 0.01f, 2, 4, 2, 0.95f, 1, 10, 0.8f, 3, 1.0f/3.0f};
 }
 static Projectiles GetInitProjectiles(){
-  return {{}, 1, 1, 7.5, 0.01f, {0.96f, 0.79f, 0.48f, 1.0f}, 12, 1.0f, 0};
+  return {{}, 1, 1, 7.5, 0.01f, {0.96f, 0.79f, 0.48f, 1.0f}, 12, 1.0f, 0, 1};
 }
 
 Game::Game(const hobot::Renderer& renderer, hobot::Window& window)

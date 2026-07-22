@@ -13,7 +13,7 @@ void ProjectileManager::Manage(Ship& ship, Asteroids& asteroids, Projectiles& pr
   _reloadTimer+=_pLogic->DeltaSeconds();
   if (_pLogic->IsKeyPressed(hobot::Key::SPC) && projectiles.maxProjectileCount > projectiles.projectiles.size() && (_reloadTimer) >= projectiles.reloadTime){
     _reloadTimer = 0;
-    projectiles.projectiles.emplace_back(ship.pos, ship.direction, ship.direction);
+    projectiles.projectiles.emplace_back(ship.pos, ship.direction, ship.direction+ship.velocity*5000.0f);
   }
 
   //Move projectiles
@@ -61,7 +61,8 @@ void ProjectileManager::Manage(Ship& ship, Asteroids& asteroids, Projectiles& pr
         for (int k = 0; k < pieces; k++){
           //Add asteroid pieces back
           glm::vec2 newPos = _fuzzPos(asteroid.pos);
-          glm::vec2 newVelocity = glm::normalize(glm::vec2{(rand()%100)/50.0f-1, (rand()%100)/50.0f-1}+projectile.dir)*asteroids.maxAsteroidSpeed*((rand()%100)/100.0f);
+          glm::vec2 newVelocity = glm::normalize(glm::vec2{(rand()%100)/50.0f-1, (rand()%100)/50.0f-1}+projectile.velocity*projectiles.knockback+asteroid.velocity)
+            *asteroids.maxAsteroidSpeed*((rand()%100+1)/100.0f)+asteroid.velocity*0.25f+projectile.velocity*0.125f/(asteroid.radius*10.0f);
 
           float newAngularSpeed = asteroid.angularSpeed*asteroids.angularSpeedFactorAfterDeststruction;
 

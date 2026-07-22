@@ -20,4 +20,5 @@ struct Projectiles{
   int edges;
   float reloadTime;
   int shotDown;
+  float knockback;
 };

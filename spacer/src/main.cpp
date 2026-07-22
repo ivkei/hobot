@@ -7,5 +7,3 @@ extern std::unique_ptr<hobot::Application> hobot::CreateApplication(){
 }
 
 HOBOT_ENTRY_POINT
-
-//TODO: this could use some finishing

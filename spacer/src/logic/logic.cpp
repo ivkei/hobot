@@ -91,4 +91,5 @@ void Logic::Execute(Field& field, Asteroids& asteroids, Ship& ship, Projectiles&
 
 void Logic::GameOver(){
   _pGame->Reset();
+  _secondsElapsed = 0;
 }
