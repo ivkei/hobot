@@ -333,6 +333,12 @@ void Renderer::VertShader(const char* string, bool isPath, bool fixed, bool reco
   }
 }
 
+//Use this if specifying both, otherwise errors are given as its trying to recompile with incompatible
+void Renderer::Shaders(const char* vStr, const char* fStr, bool vIsPath, bool fIsPath, bool fixed)const{
+  this->VertShader(vStr, vIsPath, fixed, false);
+  this->FragShader(fStr, fIsPath, fixed, true);
+}
+
 const char* Renderer::DefaultVertShader = 
 "#version 330 core\n"
 "layout (location = 0) in vec2 iPos;\n"

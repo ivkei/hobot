@@ -411,3 +411,37 @@ glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Into line
 //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //Back
 //More about GL_FRONT and GL_BACK in face culling (later)
 ```
+
+## Shaders
+* GLSL - OpenGL Shading Language
+* Structure
+```c
+#version <version>
+
+in <type> <iVar>;
+out <type> <oVar>;
+
+uniform <type> <uVar>;
+
+void main(){
+  <oVar> = <something>;
+}
+```
+* For vertex shader each input is its vertex attribute
+* Theres a maximum # of attributes (min: 16):
+```c
+int nAttrs;
+glGetIntegeriv(GL_MAX_VERTEX_ATTRIBS, &nAttrs);
+```
+* Additional vector and matrices data types.
+  - <t>vec<n>
+    * <t> for (f by default), b, i, u, d
+    * <n> for #
+  - `Swizzling` - someVec.xy = vec2
+
+### In and Outs
+* In and Outs allow to pass inputs to the next stage
+* Vertex shader is an exception (requires layout)
+  - Possible to omit via glGetAttribLocation, which returns what element to enable!
+* Other exception is fragment shader requiring vec4 color output (gl_Color)
+* Note that name has to be the same (if omitting the location syntax, prefer it)

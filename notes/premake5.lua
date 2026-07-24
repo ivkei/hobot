@@ -4,8 +4,8 @@ configurations
 {
   "Debug"
 }
-targetdir("../bin/")
-objdir("../bin-int/")
+targetdir("../build/bin/")
+objdir("../build/bin-int/")
 cppdialect "C++23"
 
 include "../hobot/"
@@ -15,16 +15,21 @@ project "notes"
   language "C++"
   staticruntime "On"
 
+  absCompileTimeRes = path.getabsolute("res/")
+  relRunTimeRes = path.getrelative("../build/bin/", "../build/res/") -- Relative to binary
+
   files
   {
     "src/**.cpp",
   }
 
-  shaderDir = path.getrelative("%{prj.location}/../bin", "%{prj.location}/res/shaders/") --Relative to the executable
-
   defines
   {
-    "SHADERS_DIR=\"" .. shaderDir .. "/\"",
+    "RES_DIR=\"" .. relRunTimeRes .. "/\"",
+  }
+
+  postbuildcommands{
+    "{COPYDIR} \"" .. absCompileTimeRes .. "\" \"" .. "../build/" .. "\""
   }
 
   links

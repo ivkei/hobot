@@ -8,5 +8,5 @@ extern std::unique_ptr<hobot::Application> hobot::CreateApplication(){
 
 HOBOT_ENTRY_POINT
 
-//TODO: continue with shaders chapter
+//TODO: stopped at uniforms
 //TODO: more abstractions

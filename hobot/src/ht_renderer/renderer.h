@@ -62,6 +62,9 @@ public:
   void FragShader(const char* string = DefaultFragShader, bool isPath = false, bool fixed = true, bool recompile = true) const;
   void VertShader(const char* string = DefaultVertShader, bool isPath = false, bool fixed = true, bool recompile = true) const;
 
+  //Use this if specifying both, otherwise errors are given as its trying to recompile with incompatible
+  void Shaders(const char* vStr = DefaultVertShader, const char* fStr = DefaultFragShader, bool vIsPath = false, bool fIsPath = false, bool fixed = true) const;
+
   //"Fixed-function pipeline"
 
   //pos = bottom-left vertex pos, dimensions = width, height

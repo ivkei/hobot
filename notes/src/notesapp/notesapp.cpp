@@ -44,8 +44,10 @@ void NotesApp::Run(){
       hobot::LayoutElement(hobot::Type::Float, 2),
       hobot::LayoutElement(hobot::Type::Float, 4),
   });
-  renderer.FragShader(hobot::Renderer::DefaultFragShader, false, false);
-  renderer.VertShader(hobot::Renderer::DefaultVertShader, false, false);
+
+  renderer.Shaders(hobot::Renderer::DefaultVertShader, hobot::Renderer::DefaultFragShader, false, false, false); //Raw
+
+  renderer.Shaders(RES_DIR "shaders/vert.glsl", RES_DIR "shaders/frag.glsl", true, true, true); //Fixed
 
   //FPS
   float timer = 0;
@@ -66,16 +68,11 @@ void NotesApp::Run(){
 
     renderer.Clear({0.1f, 0.1f, 0.1f, 1.0f});
 
-    renderer.Raw(rawVbo.data(), rawVbo.size()*sizeof(float), indices);
-    renderer.Raw(rawVbo1.data(), rawVbo1.size()*sizeof(float), indices1);
+    //renderer.Raw(rawVbo.data(), rawVbo.size()*sizeof(float), indices);
+    //renderer.Raw(rawVbo1.data(), rawVbo1.size()*sizeof(float), indices1);
 
-    glm::vec2 pos1 = {0.2f, 0.5f};
-    glm::vec2 pos2 = {0.025f, 0.0f};
-    glm::vec2 pos3 = {-0.2f, 0.0f};
-    glm::vec2 pos4 = {0.3f, -0.1f};
-    renderer.Quad(pos1, pos2, pos3, pos4, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f});
-    //renderer.Quad({0, 0}, {0, 1}, pos3, pos4, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, {0.4f, 0.4f, 0.4f, 1.0f}, true); //OrderedMode testing
-    //renderer.Circle((pos1+pos2+pos3+pos4)/4.0f, 0.01f, 3, {0.8f, 0.8f, 0.8f, 1.0f});
+    renderer.Trig({-0.5f, -0.5f}, {0.5f, -0.5f}, {0.0f, 0.5f},
+                  {1, 0, 0, 1},   {0, 1, 0,1},   {0, 0, 1, 1});
 
     renderer.Render();
     _pWindow->PollEvents();
