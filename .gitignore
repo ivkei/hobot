@@ -4,6 +4,7 @@ Makefile
 *.make
 
 # Dirs
+build/
 bin/
 bin-int/
 .cache/
