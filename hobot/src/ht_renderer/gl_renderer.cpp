@@ -7,6 +7,7 @@
 #include"ht_glutils/debug/debug.h"
 #include"ht_glutils/shader/shader.h"
 #include"ht_glutils/vao/vao.h"
+#include"ht_glutils/texture/texture.h"
 
 #define PI 3.141592653589793115997963468544185161590576171875
 
@@ -40,7 +41,36 @@ struct Renderer::PImpl{
   int maxIboSize = 0;
   bool valid = true;
   glm::vec4 viewport;
+  //Textures
+  std::unordered_map<std::string, Texture> textures;
+  int maxTextureSlots;
+  int maxImageSlots;
 };
+
+void Renderer::SetTexture(std::string path, std::string name) const{
+  if (_pImpl->textures.contains(name)) _pImpl->textures.erase(name);
+  _pImpl->textures.emplace(name, Texture(path));
+}
+void Renderer::SetTexture(unsigned int width, unsigned int height, std::string name) const{
+  if (_pImpl->textures.contains(name)) _pImpl->textures.erase(name);
+  _pImpl->textures.emplace(name, Texture(width, height));
+}
+void Renderer::BindTexture(std::string name, unsigned int slot, bool image) const{
+  HT_LOG_ASSERT(slot < _pImpl->maxTextureSlots || !image, "Texture is bound to a slot that isnt supported!");
+  HT_LOG_ASSERT(slot < _pImpl->maxImageSlots || image, "Image is bound to a slot that isnt supported!");
+  HT_LOG_ASSERT(_pImpl->textures.contains(name), "There's no texture/image called '", name, "' that was specified via SetTexture (in BindTexture)");
+  _pImpl->textures.at(name).Bind(slot, image);
+}
+int Renderer::MaxTextures() const{
+  return _pImpl->maxTextureSlots;
+}
+int Renderer::MaxImages() const{
+  return _pImpl->maxImageSlots;
+}
+void Renderer::ClearTexture(std::string name, glm::vec4 color) const{
+  HT_LOG_ASSERT(_pImpl->textures.contains(name), "There's no texture/image called '", name, "' that was specified via SetTexture (in ClearTexture)");
+  _pImpl->textures.at(name).Clear(color);
+}
 
 //Note that theres no need for multithreadedness, window has ownership and it can be bound only to thread at a time
 Renderer::Renderer(WindowProps props)
@@ -101,6 +131,13 @@ Renderer::Renderer(WindowProps props)
 
   _pImpl->maxRawDataSize = 1000;
   _pImpl->pRawData = malloc(_pImpl->maxRawDataSize);
+
+  //Textures
+  GLCall(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_pImpl->maxTextureSlots));
+  HT_LOG_INFO("Max texture slots: ", _pImpl->maxTextureSlots);
+
+  GLCall(glGetIntegerv(GL_MAX_IMAGE_UNITS, &_pImpl->maxImageSlots));
+  HT_LOG_INFO("Max image slots: ", _pImpl->maxImageSlots);
 }
 
 Renderer::~Renderer(){
@@ -135,6 +172,8 @@ void Renderer::Render() const{
     GLCall(glClear(GL_COLOR_BUFFER_BIT));
   }
 
+  if (rawIbo.empty() && fixedIbo.empty()) return;
+
   fixedVao.Bind();
   fixedShader.Bind();
 
@@ -165,6 +204,8 @@ void Renderer::Render() const{
   fixedShader.Unbind();
   //Raw draw
   if (rawIbo.size() > 2 && pRawData){
+    HT_LOG_ASSERT(rawShader.IsValid(), "Raw shader is invalid, please specify it with Vert and Frag");
+    HT_LOG_ASSERT(rawVao.IsValid(), "Raw layout wasnt specified");
     rawShader.Bind();
     rawVao.Bind();
     _pImpl->rawLayout.SetOffset(fixedVbo.size()*sizeof(Vertex)); //offset within buffer
@@ -376,6 +417,9 @@ void Renderer::Uniform(const char* name, glm::mat4 v, bool fixed) const{
   UniformLogic();
 }
 void Renderer::Uniform(const char* name, glm::vec4 v, bool fixed) const{
+  UniformLogic();
+}
+void Renderer::Uniform(const char* name, glm::vec2 v, bool fixed) const{
   UniformLogic();
 }
 

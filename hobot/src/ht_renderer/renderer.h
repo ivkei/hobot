@@ -32,6 +32,14 @@ public:
   Renderer(WindowProps props);
   ~Renderer();
 
+  //Textures (dont bind more than allowed at once, query MaxTextures, note that indexing starts with 0)
+  void SetTexture(std::string path, std::string name) const; //Both overwrite a texture if name is repeated
+  void SetTexture(unsigned int width, unsigned int height, std::string name) const;
+  void BindTexture(std::string name, unsigned int slot = 0, bool image = false) const;
+  void ClearTexture(std::string name, glm::vec4 color = glm::vec4(1)) const;
+  int MaxTextures() const; //Read-only, optimized for drawing
+  int MaxImages() const; //Read and write
+
   void Render() const;
   void Clear(glm::vec4 color = glm::vec4(0, 0, 0, 1)) const;
 
@@ -54,6 +62,7 @@ public:
   void Uniform(const char* name, float f, bool fixed = true) const;
   void Uniform(const char* name, glm::mat4 m, bool fixed = true) const;
   void Uniform(const char* name, glm::vec4 v, bool fixed = true) const;
+  void Uniform(const char* name, glm::vec2 v, bool fixed = true) const;
 
   //Interprets first arg as source if second is false, otherwise parses a file via a file path, use hobot::GetExecDir() if needed
   //Path is relative to exec file

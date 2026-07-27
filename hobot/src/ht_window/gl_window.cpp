@@ -46,10 +46,10 @@ Window::Window(WindowProps props)
     std::terminate();
   }
 
-  //Settings
+  //Settings (default version)
   if (props.apiVersion == -1){
-    props.apiVersion = 3.3f;
-    _props.apiVersion = 3.3f;
+    props.apiVersion = 4.4f;
+    _props.apiVersion = 4.4f;
   }
 
   int major = static_cast<int>(std::floor(props.apiVersion));

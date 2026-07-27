@@ -165,4 +165,9 @@ void Shader::SetUniform(const std::string& name, glm::vec4 v){
   this->SetUniform(name, v.x, v.y, v.z, v.w);
 }
 
+void Shader::SetUniform(const std::string& name, glm::vec2 v){
+  int location = _GetUniformLocation(name);
+  GLCall(glUniform2f(location, v.x, v.y));
+}
+
 }
