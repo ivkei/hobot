@@ -357,32 +357,26 @@ const char* Renderer::DefaultFragShader =
 "  oColor = vColor;\n"
 "}\n";
 
-void Renderer::Uniform(const char* name, int i, bool fixed) const{
-  if (fixed){
-    _pImpl->fixedShader.Bind();
-    _pImpl->fixedShader.SetUniform(name, i);
-  }else{
-    _pImpl->rawShader.Bind();
-    _pImpl->rawShader.SetUniform(name, i);
+#define UniformLogic() \
+  if (fixed){\
+    _pImpl->fixedShader.Bind();\
+    _pImpl->fixedShader.SetUniform(name, v);\
+  }else{\
+    _pImpl->rawShader.Bind();\
+    _pImpl->rawShader.SetUniform(name, v);\
   }
+
+void Renderer::Uniform(const char* name, int v, bool fixed) const{
+  UniformLogic();
 }
-void Renderer::Uniform(const char* name, float f, bool fixed) const{
-  if (fixed){
-    _pImpl->fixedShader.Bind();
-    _pImpl->fixedShader.SetUniform(name, f);
-  }else{
-    _pImpl->rawShader.Bind();
-    _pImpl->rawShader.SetUniform(name, f);
-  }
+void Renderer::Uniform(const char* name, float v, bool fixed) const{
+  UniformLogic();
 }
-void Renderer::Uniform(const char* name, glm::mat4 m, bool fixed) const{
-  if (fixed){
-    _pImpl->fixedShader.Bind();
-    _pImpl->fixedShader.SetUniform(name, m);
-  }else{
-    _pImpl->rawShader.Bind();
-    _pImpl->rawShader.SetUniform(name, m);
-  }
+void Renderer::Uniform(const char* name, glm::mat4 v, bool fixed) const{
+  UniformLogic();
+}
+void Renderer::Uniform(const char* name, glm::vec4 v, bool fixed) const{
+  UniformLogic();
 }
 
 void Renderer::Clear(glm::vec4 color) const{

@@ -8,5 +8,6 @@ extern std::unique_ptr<hobot::Application> hobot::CreateApplication(){
 
 HOBOT_ENTRY_POINT
 
-//TODO: stopped at uniforms
+//TODO: add texture support to hobot
+//TODO: Stopped at texture wrapping
 //TODO: more abstractions

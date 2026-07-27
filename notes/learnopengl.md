@@ -445,3 +445,66 @@ glGetIntegeriv(GL_MAX_VERTEX_ATTRIBS, &nAttrs);
   - Possible to omit via glGetAttribLocation, which returns what element to enable!
 * Other exception is fragment shader requiring vec4 color output (gl_Color)
 * Note that name has to be the same (if omitting the location syntax, prefer it)
+
+### Uniforms
+- Global (can be accessed from both fragment and vertex shader)
+- Keeps value until reset or updated
+- Compiler removes unused uniforms
+```c Example
+int Shader::_GetUniformLocation(name){
+  this->Bind();
+
+  if (_locationCache.contains(name)){
+    return _locationCache.at(name);
+  }
+
+  GLCall(int location = glGetUniformLocation(_id, name.c_str()));
+
+  if (location == -1){
+    HT_LOG_WARNING("Uniform (", name, ") couldnt be found");
+  }
+  else{
+    _locationCache.emplace(name, location);
+  }
+
+  return location;
+}
+
+int location = _GetUniformLocation(name);
+
+//Shader has to be bound here
+GLCall(glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]));
+//Location
+//Count
+//Transpouse, whether to convert to row-major to column-major, glm stores them column-major
+//Address
+
+//v for vector/array
+//f for float
+//ui for unsigned int
+//3f for 3 floats
+//C doesnt have overloads
+```
+```c Shader
+#version 330 core
+uniform vec4 uColor;
+
+void main(){
+  oColor = uColor;
+}
+```
+
+### Fragment Interpolation
+- Based on rasterized positions, interpolate between vertex specific attributes (Ex: color).
+- Applied to Fragment Shader's all input attributes
+- Negative color values are clamped to 0
+
+## Textures
+- Clearly nobody would want an object with a bajillion of colors and vertices
+* Thus textures are used
+- 2D image to add details
+* Each vertex of an object should have the texture coordinate associated with it.
+  - Specifies what part of the texture image to sample from.
+  - Fragment interpolation then kicks in
+  - Texture coordinates range from 0 to 1 in a Cartesian-style
+  - Retrieving texture color using texture coordinates is called `sampling`.

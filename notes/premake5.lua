@@ -35,6 +35,8 @@ project "notes"
   links
   {
     "hobot",
+    "glfw",
+    "glew"
   }
 
   includedirs
@@ -42,6 +44,8 @@ project "notes"
     "src/",
     "../hobot/include",
     "../hobot/vendors/glm-1.0.1",
+    "../hobot/vendors/glew-2.2.0/include",
+    "../hobot/vendors/glfw-3.4/include",
     "../hobot/src/",
   }
 

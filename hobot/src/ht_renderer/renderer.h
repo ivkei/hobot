@@ -53,6 +53,7 @@ public:
   void Uniform(const char* name, int i, bool fixed = true) const;
   void Uniform(const char* name, float f, bool fixed = true) const;
   void Uniform(const char* name, glm::mat4 m, bool fixed = true) const;
+  void Uniform(const char* name, glm::vec4 v, bool fixed = true) const;
 
   //Interprets first arg as source if second is false, otherwise parses a file via a file path, use hobot::GetExecDir() if needed
   //Path is relative to exec file

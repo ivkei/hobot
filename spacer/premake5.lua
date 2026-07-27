@@ -5,8 +5,8 @@ configurations
   "Debug",
   "Release"
 }
-targetdir("../bin/")
-objdir("../bin-int/")
+targetdir("../build/bin/")
+objdir("../build/bin-int/")
 cppdialect "C++23"
 
 include "../hobot/"
