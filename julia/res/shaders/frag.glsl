@@ -8,7 +8,7 @@ uniform float uCImag;
 uniform int uIterations;
 uniform float uR;
 
-vec4 hsbToRgba(vec3 args){
+vec4 HsbToRgba(vec3 args){
   vec3 rgb = clamp(abs(mod(args.x*6.0+vec3(0.0, 4.0, 2.0), 6.0)-3.0)-1.0, 0.0, 1.0);
   rgb = rgb*rgb*(3.0-2.0*rgb);
   return vec4(args.z*mix(vec3(1.0), rgb, args.y), 1.0);
@@ -21,7 +21,7 @@ vec4 Color(vec2 z, int i){
   float smoothI = float(i) + 1.0 - log(log(sqrt(z.x*z.x+z.y*z.y)))/log(uR*uR);
   float a = smoothI/uIterations;
   float b = sin(pi*sin(pi*sin(pi*sin(a*pi))));
-  vec4 color = hsbToRgba(vec3(1.0-a, 1.0, b));
+  vec4 color = HsbToRgba(vec3(1.0-a, 1.0, b));
   color = vec4(1.0-color.x, 1.0-color.y, 1.0-color.z, 1.0);
   return color;
 

@@ -36,7 +36,7 @@ void App::Run(){
   float maxTimer = 30;
 
   //Iterations
-  int iterations = 40;
+  int iterations = 50;
   renderer.Uniform("uIterations", iterations);
 
   //FPS
