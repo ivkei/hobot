@@ -14,8 +14,8 @@
 namespace hobot{
 
 struct Vertex{
-  glm::vec2 pos;
-  glm::vec4 color;
+  hobot::Vec2 pos;
+  hobot::Vec4 color;
 };
 
 struct Renderer::PImpl{
@@ -40,7 +40,7 @@ struct Renderer::PImpl{
   int maxVboSize = 0;
   int maxIboSize = 0;
   bool valid = true;
-  glm::vec4 viewport;
+  hobot::Vec4 viewport;
   //Textures
   std::unordered_map<std::string, Texture> textures;
   int maxTextureSlots;
@@ -67,7 +67,7 @@ int Renderer::MaxTextures() const{
 int Renderer::MaxImages() const{
   return _pImpl->maxImageSlots;
 }
-void Renderer::ClearTexture(std::string name, glm::vec4 color) const{
+void Renderer::ClearTexture(std::string name, hobot::Vec4 color) const{
   HT_LOG_ASSERT(_pImpl->textures.contains(name), "There's no texture/image called '", name, "' that was specified via SetTexture (in ClearTexture)");
   _pImpl->textures.at(name).Clear(color);
 }
@@ -232,7 +232,7 @@ void Renderer::Render() const{
   fixedIbo.clear();
 }
 
-static float AtFor2Pts(float x, glm::vec2 p1, glm::vec2 p2){
+static float AtFor2Pts(float x, hobot::Vec2 p1, hobot::Vec2 p2){
   return (p1.x != p2.x) && (p1.x*p2.x - p1.y*p2.y-x*(p2.y-p1.y))/(p1.x-p2.x);
 }
 
@@ -247,8 +247,8 @@ if ((pos##other1.y > AtFor2Pts(pos##other1.x, pos##endpt1, pos##endpt2) && pos##
   orderedIndices[3] = other2;\
 }
 
-static void PushQuad(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, glm::vec2 pos0, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pos3, //Dont rename them
-    glm::vec4 c1, glm::vec4 c2, glm::vec4 c3, glm::vec4 c4, bool orderedMode){
+static void PushQuad(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2, hobot::Vec2 pos3, //Dont rename them
+    hobot::Vec4 c1, hobot::Vec4 c2, hobot::Vec4 c3, hobot::Vec4 c4, bool orderedMode){
   int offset = vao.size();
   //Vbo
   vao.emplace_back(Vertex{pos0, c1});
@@ -282,8 +282,8 @@ static void PushQuad(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, g
   }
 }
 
-static void PushTrig(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pos3,
-    glm::vec4 c1, glm::vec4 c2, glm::vec4 c3){
+static void PushTrig(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, hobot::Vec2 pos1, hobot::Vec2 pos2, hobot::Vec2 pos3,
+    hobot::Vec4 c1, hobot::Vec4 c2, hobot::Vec4 c3){
   int offset = vao.size();
   //Vbo
   vao.emplace_back(Vertex{pos1, c1});
@@ -296,7 +296,7 @@ static void PushTrig(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, g
   ibo.push_back(offset+2);
 }
 
-static glm::vec4 RadsToColor(float rads){
+static hobot::Vec4 RadsToColor(float rads){
   if (0 <= rads && rads < (2*PI)/3){
     auto interpol = rads/((2*PI)/3);
     return {interpol, 1-interpol, 0, 1};
@@ -309,13 +309,13 @@ static glm::vec4 RadsToColor(float rads){
   }
 }
 
-static void PushCircle(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, glm::vec2 center, float r, int iters, glm::vec4 centerColor, glm::vec4 circumColor, bool rainbowCircum, float rotation){
+static void PushReg(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo, hobot::Vec2 center, float r, int iters, hobot::Vec4 centerColor, hobot::Vec4 circumColor, bool rainbowCircum, float rotation){
   for (int i = 0; i < iters; i++){
     float angle1 = ((float)i/(float)iters)*2.0f*PI + (rotation);
     float angle2 = ((float)(i+1)/(float)iters)*2.0f*PI + (rotation);
-    glm::vec2 p1{center.x+std::cos(angle1)*r,center.y+std::sin(angle1)*r}, p2{center.x+std::cos(angle2)*r,center.y+std::sin(angle2)*r};
+    hobot::Vec2 p1{center.x+std::cos(angle1)*r,center.y+std::sin(angle1)*r}, p2{center.x+std::cos(angle2)*r,center.y+std::sin(angle2)*r};
 
-    glm::vec4 c1, c2;
+    hobot::Vec4 c1, c2;
     if (!rainbowCircum){
       c1 = c2 = circumColor;
     }else{
@@ -328,35 +328,35 @@ static void PushCircle(std::vector<Vertex>& vao, std::vector<unsigned int>& ibo,
 }
 
 //pos = bottom-left vertex pos, dimensions = width, height
-void Renderer::Quad(glm::vec2 pos, glm::vec2 dimensions, glm::vec4 color) const{
+void Renderer::Quad(hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color) const{
   PushQuad(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, {pos.x+dimensions.x, pos.y}, {pos.x, pos.y+dimensions.y}, {pos.x+dimensions.x, pos.y+dimensions.y},
       color, color, color, color, false);
 }
-void Renderer::Quad(glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pos3, glm::vec2 pos4,
-          glm::vec4 c1, glm::vec4 c2, glm::vec4 c3, glm::vec4 c4, bool orderedMode) const{
+void Renderer::Quad(hobot::Vec2 pos1, hobot::Vec2 pos2, hobot::Vec2 pos3, hobot::Vec2 pos4,
+          hobot::Vec4 c1, hobot::Vec4 c2, hobot::Vec4 c3, hobot::Vec4 c4, bool orderedMode) const{
   PushQuad(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos1, pos2, pos3, pos4, c1, c2, c3, c4, orderedMode);
 }
 
 //pos = bottom-left vertex pos, dimensions = base width, height, triangle = right
-void Renderer::Trig(glm::vec2 pos, glm::vec2 dimensions, glm::vec4 color) const{
+void Renderer::Trig(hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color) const{
   PushTrig(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, {pos.x+dimensions.x, pos.y}, {pos.x, pos.y + dimensions.y}, color, color, color);
 }
-void Renderer::Trig(glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pos3,
-          glm::vec4 c1, glm::vec4 c2, glm::vec4 c3) const{
+void Renderer::Trig(hobot::Vec2 pos1, hobot::Vec2 pos2, hobot::Vec2 pos3,
+          hobot::Vec4 c1, hobot::Vec4 c2, hobot::Vec4 c3) const{
   PushTrig(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos1, pos2, pos3, c1, c2, c3);
 }
 
 //pos = center of the circle coordinates
-void Renderer::Circle(glm::vec2 pos, float r, int vertices, glm::vec4 color, float rotation) const{
-  PushCircle(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, color, color, false, rotation);
+void Renderer::Reg(hobot::Vec2 pos, float r, int vertices, hobot::Vec4 color, float rotation) const{
+  PushReg(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, color, color, false, rotation);
 }
 //pos = center of the circle coordinates
-void Renderer::Circle(glm::vec2 pos, float r, int vertices, glm::vec4 centerColor, glm::vec4 circumColor, float rotation) const{
-  PushCircle(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, centerColor, circumColor, false, rotation);
+void Renderer::Reg(hobot::Vec2 pos, float r, int vertices, hobot::Vec4 centerColor, hobot::Vec4 circumColor, float rotation) const{
+  PushReg(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, centerColor, circumColor, false, rotation);
 }
 //pos = center of the circle coordinates
-void Renderer::Circle(glm::vec2 pos, float r, int vertices, bool isRainbow, float rotation) const{
-  PushCircle(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, glm::vec4(1, 1, 1, 1), glm::vec4(0), true, rotation);
+void Renderer::Reg(hobot::Vec2 pos, float r, int vertices, bool isRainbow, float rotation) const{
+  PushReg(this->_pImpl->fixedVbo, this->_pImpl->fixedIbo, pos, r, vertices, hobot::Vec4(1, 1, 1, 1), hobot::Vec4(0), true, rotation);
 }
 
 void Renderer::FragShader(const char* string, bool isPath, bool fixed, bool recompile) const{
@@ -413,17 +413,17 @@ void Renderer::Uniform(const char* name, int v, bool fixed) const{
 void Renderer::Uniform(const char* name, float v, bool fixed) const{
   UniformLogic();
 }
-void Renderer::Uniform(const char* name, glm::mat4 v, bool fixed) const{
+void Renderer::Uniform(const char* name, hobot::Mat4 v, bool fixed) const{
   UniformLogic();
 }
-void Renderer::Uniform(const char* name, glm::vec4 v, bool fixed) const{
+void Renderer::Uniform(const char* name, hobot::Vec4 v, bool fixed) const{
   UniformLogic();
 }
-void Renderer::Uniform(const char* name, glm::vec2 v, bool fixed) const{
+void Renderer::Uniform(const char* name, hobot::Vec2 v, bool fixed) const{
   UniformLogic();
 }
 
-void Renderer::Clear(glm::vec4 color) const{
+void Renderer::Clear(hobot::Vec4 color) const{
   this->_pImpl->clear = true;
   GLCall(glClearColor(color.x, color.y, color.z, color.w));
 }
@@ -432,7 +432,7 @@ bool Renderer::IsValid() const{
   return this->_pImpl->valid;
 }
 
-void Renderer::SetViewport(glm::vec2 start, glm::vec2 dimensions) const{
+void Renderer::SetViewport(hobot::Vec2 start, hobot::Vec2 dimensions) const{
   _pImpl->viewport = {start, dimensions};
 
   //Set viewport
@@ -442,7 +442,7 @@ void Renderer::SetViewport(glm::vec2 start, glm::vec2 dimensions) const{
   //Maps normalized device coordinates into window coordinates
   //Allows to make a literal viewport within the window and reserve other space for more (scales and maps)
 
-  if (start == glm::vec2(0, 0) && dimensions == glm::vec2(1, 1)){
+  if (start == hobot::Vec2(0, 0) && dimensions == hobot::Vec2(1, 1)){
     glDisable(GL_SCISSOR_TEST); //Otherwise clear is too slow
   } else{
     glScissor(start.x*_props.width, start.y*_props.height, dimensions.x*_props.width, dimensions.y*_props.height); //Prevents blending into other viewports
@@ -454,7 +454,7 @@ void Renderer::_SetWindowProps(WindowProps props){
   _props = std::move(props);
 }
 
-glm::vec4 Renderer::GetViewport() const{
+hobot::Vec4 Renderer::GetViewport() const{
   return _pImpl->viewport;
 }
 

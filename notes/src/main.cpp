@@ -10,4 +10,4 @@ HOBOT_ENTRY_POINT
 
 //TODO: add texture support to hobot (sprites?)
 //TODO: Stopped at mipmaps
-//TODO: more abstractions
+//TODO: watch sparky/Hazel series

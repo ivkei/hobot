@@ -1,12 +1,13 @@
 #pragma once
 
+#include"hobot.h"
+
 #include<vector>
-#include"glm/glm.hpp"
 
 struct Projectile{
-  glm::vec2 pos;
-  glm::vec2 dir;
-  glm::vec2 velocity;
+  hobot::Vec2 pos;
+  hobot::Vec2 dir;
+  hobot::Vec2 velocity;
   float lifetime;
 };
 
@@ -16,7 +17,7 @@ struct Projectiles{
   float projectileSpeed;
   float maxLifetime;
   float radius;
-  glm::vec4 color;
+  hobot::Vec4 color;
   int edges;
   float reloadTime;
   int shotDown;

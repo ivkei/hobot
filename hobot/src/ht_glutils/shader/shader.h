@@ -3,7 +3,7 @@
 #include<string>
 #include<unordered_map>
 
-#include"glm/glm.hpp"
+#include"ht_math/math.h"
 
 namespace hobot{
 
@@ -27,13 +27,13 @@ class Shader{
   bool IsValid() const;
 
   //Uniforms
-  void SetUniform(const std::string& name, const glm::mat4& mat);
+  void SetUniform(const std::string& name, const Mat4& mat);
   void SetUniform(const std::string& name, float f0, float f1, float f2, float f3);
   void SetUniform(const std::string& name, float f0);
   void SetUniform(const std::string& name, int i0);
   void SetUniform(const std::string& name, int is[], int count);
-  void SetUniform(const std::string& name, glm::vec4 v);
-  void SetUniform(const std::string& name, glm::vec2 v);
+  void SetUniform(const std::string& name, hobot::Vec4 v);
+  void SetUniform(const std::string& name, hobot::Vec2 v);
 };
 
 }

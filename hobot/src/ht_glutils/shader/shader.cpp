@@ -131,13 +131,13 @@ int Shader::_GetUniformLocation(const std::string& name){
   return location;
 }
 
-void Shader::SetUniform(const std::string& name, const glm::mat4& mat){
+void Shader::SetUniform(const std::string& name, const Mat4& mat){
   int location = _GetUniformLocation(name);
 
   GLCall(glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]));
   //Location
   //Count
-  //Transpouse, whether to convert to row-major to column-major, glm stores them column-major
+  //Transpouse, whether to convert to row-major to column-major, hobot stores them column-major
   //Address
 }
 
@@ -161,11 +161,11 @@ void Shader::SetUniform(const std::string& name, int is[], int count){
   GLCall(glUniform1iv(location, count, is));
 }
 
-void Shader::SetUniform(const std::string& name, glm::vec4 v){
+void Shader::SetUniform(const std::string& name, hobot::Vec4 v){
   this->SetUniform(name, v.x, v.y, v.z, v.w);
 }
 
-void Shader::SetUniform(const std::string& name, glm::vec2 v){
+void Shader::SetUniform(const std::string& name, hobot::Vec2 v){
   int location = _GetUniformLocation(name);
   GLCall(glUniform2f(location, v.x, v.y));
 }

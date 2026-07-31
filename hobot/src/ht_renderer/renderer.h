@@ -6,9 +6,7 @@
 #include"ht_api.h"
 #include"ht_window/windowprops.h"
 #include"ht_renderer/layoutelement.h"
-
-#include"glm/vec4.hpp"
-#include"glm/mat4x4.hpp"
+#include"ht_math/math.h"
 
 namespace hobot{
 
@@ -36,17 +34,17 @@ public:
   void SetTexture(std::string path, std::string name) const; //Both overwrite a texture if name is repeated
   void SetTexture(unsigned int width, unsigned int height, std::string name) const;
   void BindTexture(std::string name, unsigned int slot = 0, bool image = false) const;
-  void ClearTexture(std::string name, glm::vec4 color = glm::vec4(1)) const;
+  void ClearTexture(std::string name, hobot::Vec4 color = hobot::Vec4(1)) const;
   int MaxTextures() const; //Read-only, optimized for drawing
   int MaxImages() const; //Read and write
 
   void Render() const;
-  void Clear(glm::vec4 color = glm::vec4(0, 0, 0, 1)) const;
+  void Clear(hobot::Vec4 color = hobot::Vec4(0, 0, 0, 1)) const;
 
   bool IsValid() const;
   //Both start and dimensions are between 0 and 1, thats because its independent of window's size
-  void SetViewport(glm::vec2 start, glm::vec2 dimensions) const; //Setter yet const as its needed to be called from const references
-  glm::vec4 GetViewport() const;
+  void SetViewport(hobot::Vec2 start, hobot::Vec2 dimensions) const; //Setter yet const as its needed to be called from const references
+  hobot::Vec4 GetViewport() const;
   void _SetWindowProps(WindowProps props);
 
   //Custom pipeline
@@ -60,9 +58,9 @@ public:
 
   void Uniform(const char* name, int i, bool fixed = true) const;
   void Uniform(const char* name, float f, bool fixed = true) const;
-  void Uniform(const char* name, glm::mat4 m, bool fixed = true) const;
-  void Uniform(const char* name, glm::vec4 v, bool fixed = true) const;
-  void Uniform(const char* name, glm::vec2 v, bool fixed = true) const;
+  void Uniform(const char* name, hobot::Mat4 m, bool fixed = true) const;
+  void Uniform(const char* name, hobot::Vec4 v, bool fixed = true) const;
+  void Uniform(const char* name, hobot::Vec2 v, bool fixed = true) const;
 
   //Interprets first arg as source if second is false, otherwise parses a file via a file path, use hobot::GetExecDir() if needed
   //Path is relative to exec file
@@ -78,29 +76,29 @@ public:
   //"Fixed-function pipeline"
 
   //pos = bottom-left vertex pos, dimensions = width, height
-  void Quad(glm::vec2 pos, glm::vec2 dimensions, glm::vec4 color = glm::vec4(1)) const;
+  void Quad(hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color = hobot::Vec4(1)) const;
   //Ordered mode ensures that the order of vertices doesnt matter; however, since every quad has at most 2 diagonals (for shapes less it will do fine),
   //it will possibly render unexpected shape if a weird shape was passed to it
   //Proper order follows a pattern of 2 trigs where
   //  -Trig1 is vertex0, vertex1, and vertex2
   //  -Trig2 is vertex1, vertex2, and vertex3
   //If its improper (that is it doesnt follow such a pattern), weird "rectangles" can be drawn where one overlaps the other
-  void Quad(glm::vec2 vertexPos0, glm::vec2 vertexPos1, glm::vec2 vertexPos2, glm::vec2 vertexPos3,
-            glm::vec4 vertexColor0, glm::vec4 vertexColor1, glm::vec4 vertexColor2, glm::vec4 vertexColor3, bool orderedMode = false) const;
+  void Quad(hobot::Vec2 vertexPos0, hobot::Vec2 vertexPos1, hobot::Vec2 vertexPos2, hobot::Vec2 vertexPos3,
+            hobot::Vec4 vertexColor0, hobot::Vec4 vertexColor1, hobot::Vec4 vertexColor2, hobot::Vec4 vertexColor3, bool orderedMode = false) const;
 
   //pos = bottom-left vertex pos, dimensions = base width, height, triangle = right
-  void Trig(glm::vec2 pos, glm::vec2 dimensions, glm::vec4 color = glm::vec4(1)) const;
-  void Trig(glm::vec2 vertexPos0, glm::vec2 vertexPos1, glm::vec2 vertexPos2,
-            glm::vec4 vertexColor0, glm::vec4 vertexColor1, glm::vec4 vertexColor2) const;
+  void Trig(hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color = hobot::Vec4(1)) const;
+  void Trig(hobot::Vec2 vertexPos0, hobot::Vec2 vertexPos1, hobot::Vec2 vertexPos2,
+            hobot::Vec4 vertexColor0, hobot::Vec4 vertexColor1, hobot::Vec4 vertexColor2) const;
 
-  //It really draws regular polygons
+  //It draws regular polygons
   //rotation in rads
   //pos = center of the circle coordinates
-  void Circle(glm::vec2 pos, float r, int vertices = 30, glm::vec4 color = glm::vec4(1), float rotation = 0) const;
+  void Reg(hobot::Vec2 pos, float r, int vertices = 30, hobot::Vec4 color = hobot::Vec4(1), float rotation = 0) const;
   //pos = center of the circle coordinates
-  void Circle(glm::vec2 pos, float r, int vertices, glm::vec4 centerColor, glm::vec4 circumferenceColor, float rotation = 0) const;
+  void Reg(hobot::Vec2 pos, float r, int vertices, hobot::Vec4 centerColor, hobot::Vec4 circumferenceColor, float rotation = 0) const;
   //pos = center of the circle coordinates
-  void Circle(glm::vec2 pos, float r, int vertices, bool isRainbow = false, float rotation = 0) const;
+  void Reg(hobot::Vec2 pos, float r, int vertices, bool isRainbow = false, float rotation = 0) const;
 };
 
 }

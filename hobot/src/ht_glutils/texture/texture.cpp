@@ -77,7 +77,7 @@ void Texture::Unbind(){
   //Just nothing, it doesnt really matter
 }
 
-void Texture::Clear(glm::vec4 color){
+void Texture::Clear(Vec4 color){
   GLCall(glClearTexImage(_id, 0, GL_RGBA, GL_FLOAT, &color));
   //2nd is level
 }

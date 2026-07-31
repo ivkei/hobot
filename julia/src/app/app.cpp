@@ -3,7 +3,7 @@
 #include<chrono>
 #include<complex>
 
-#include"glm/gtc/constants.hpp"
+#include"hobot.h"
 
 App::App()
 : _pWindow(std::make_unique<hobot::Window>(hobot::WindowProps(1080, 1080, "julia", -1, false))),
@@ -62,9 +62,9 @@ void App::Run(){
     //Interpolate c
     if (!_pause && (timer+=deltaSeconds) >= maxTimer) timer = 0;
     //Different cs
-    float pi = glm::pi<float>();
-    float a = glm::mix(0.0f, 2*pi, timer/maxTimer);
-    float e = glm::exp(1);
+    float pi = hobot::PI<float>();
+    float a = hobot::Lerp(0.0f, 2*pi, timer/maxTimer);
+    float e = hobot::Exp(1);
     std::complex<float> i = 0.0f+1.0if;
     std::complex<float> c = 0.7885f*std::pow(e, i*a);
 

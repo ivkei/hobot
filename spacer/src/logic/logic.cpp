@@ -1,7 +1,6 @@
 #include"logic.h"
 
-#include"glm/glm.hpp"
-#include"glm/gtc/constants.hpp"
+#include"hobot.h"
 
 #include"game/game.h"
 
@@ -17,8 +16,8 @@ void Logic::FixedExecute(Field& field, Asteroids& asteroids, Ship& ship, Project
     this->_keysPressed[hobot::Key::key] = true;\
   });\
 
-template<glm::vec2 min, glm::vec2 max>
-static glm::vec2 Wrap(glm::vec2 v){
+template<hobot::Vec2 min, hobot::Vec2 max>
+static hobot::Vec2 Wrap(hobot::Vec2 v){
   if (v.x > max.x) v.x = min.x;
   else if (v.x < min.x) v.x = max.x;
   if (v.y > max.y) v.y = min.y;
@@ -26,7 +25,7 @@ static glm::vec2 Wrap(glm::vec2 v){
   return v;
 }
 
-static glm::vec2 Wrap(glm::vec2 v, glm::vec2 min, glm::vec2 max){
+static hobot::Vec2 Wrap(hobot::Vec2 v, hobot::Vec2 min, hobot::Vec2 max){
   if (v.x > max.x) v.x = min.x;
   else if (v.x < min.x) v.x = max.x;
   if (v.y > max.y) v.y = min.y;
@@ -34,17 +33,17 @@ static glm::vec2 Wrap(glm::vec2 v, glm::vec2 min, glm::vec2 max){
   return v;
 }
 
-static bool IsWithin(glm::vec2 pos, glm::vec2 min, glm::vec2 max){
+static bool IsWithin(hobot::Vec2 pos, hobot::Vec2 min, hobot::Vec2 max){
   return (pos.x > min.x && pos.y > min.y && pos.x < max.x && pos.y < max.y);
 }
 
-static glm::vec2 FuzzPos(glm::vec2 pos, glm::vec2 min, glm::vec2 max){
-  glm::vec2 randVec = {min.x*((rand()%100)/100.0f) + max.x*((rand()%100)/100.0f), min.y*((rand()%100)/100.0f) + max.y*((rand()%100)/100.0f)};
+static hobot::Vec2 FuzzPos(hobot::Vec2 pos, hobot::Vec2 min, hobot::Vec2 max){
+  hobot::Vec2 randVec = {min.x*((rand()%100)/100.0f) + max.x*((rand()%100)/100.0f), min.y*((rand()%100)/100.0f) + max.y*((rand()%100)/100.0f)};
 
   return pos+randVec;
 }
 
-//AsteroidsManager::AsteroidsManager(Logic* pLogic, std::function<glm::vec2(glm::vec2)> wrapFunc, std::function<bool(glm::vec2)> isWithinFieldFunc)
+//AsteroidsManager::AsteroidsManager(Logic* pLogic, std::function<hobot::Vec2(hobot::Vec2)> wrapFunc, std::function<bool(hobot::Vec2)> isWithinFieldFunc)
 
 #define AsteroidsBounds \
 {-1.0f-initAsteroids.maxAsteroidRadius, -1.0f-initAsteroids.maxAsteroidRadius},\
@@ -52,9 +51,9 @@ static glm::vec2 FuzzPos(glm::vec2 pos, glm::vec2 min, glm::vec2 max){
 
 Logic::Logic(hobot::Window& window, Ship& initShip, Asteroids& initAsteroids, Projectiles& initProjectiles, Game* pGame)
 : _deltaSeconds(0), _shipManager(this, Wrap<{-1.05f, -1.05f}, {1.05f, 1.05f}>),
-  _asteroidsManager(this, [&](glm::vec2 pos){return Wrap(pos, AsteroidsBounds);},
-                    [&](glm::vec2 pos){ return IsWithin(pos, AsteroidsBounds);}), //Safe to assume address will be valid (managed by game that also manages logic)
-  _pGame(pGame), _projectileManager(this, Wrap<{-1.05f, -1.05f}, {1.05f, 1.05f}>, [](glm::vec2 pos){return FuzzPos(pos, {-0.05f, -0.05f}, {0.05f, 0.05f});}, initProjectiles),
+  _asteroidsManager(this, [&](hobot::Vec2 pos){return Wrap(pos, AsteroidsBounds);},
+                    [&](hobot::Vec2 pos){ return IsWithin(pos, AsteroidsBounds);}), //Safe to assume address will be valid (managed by game that also manages logic)
+  _pGame(pGame), _projectileManager(this, Wrap<{-1.05f, -1.05f}, {1.05f, 1.05f}>, [](hobot::Vec2 pos){return FuzzPos(pos, {-0.05f, -0.05f}, {0.05f, 0.05f});}, initProjectiles),
   _secondsElapsed(0){
   //Safe to assume logic will not be destroyed as game and app manage window and it
   KeyCallback(W);

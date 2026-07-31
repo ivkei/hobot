@@ -2,6 +2,8 @@
 
 #include"render/render.h"
 
+#include"hobot.h"
+
 hobot::WindowProps Game::GetWindowProps(){
   return {1080, 1080, "spacer", -1, false};
 }

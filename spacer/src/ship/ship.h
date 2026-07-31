@@ -1,14 +1,14 @@
 #pragma once
 
-#include"glm/glm.hpp"
+#include"hobot.h"
 
 struct Ship{
   //Properties
-  glm::vec2 pos;
-  glm::vec2 direction; //Keep normalized
+  hobot::Vec2 pos;
+  hobot::Vec2 direction; //Keep normalized
   float speed;
-  glm::vec4 color;
-  glm::vec2 velocity;
+  hobot::Vec4 color;
+  hobot::Vec2 velocity;
   float maxSpeed;
   float angularSpeed;
 };

@@ -1,11 +1,12 @@
 #pragma once
 
-#include"glm/glm.hpp"
+#include"hobot.h"
+
 #include<vector>
 
 struct Asteroid{
-  glm::vec2 pos;
-  glm::vec2 velocity;
+  hobot::Vec2 pos;
+  hobot::Vec2 velocity;
   float angularSpeed;
   float radius;
   int edges;
@@ -15,7 +16,7 @@ struct Asteroid{
 
 struct Asteroids{
   std::vector<Asteroid> asteroids;
-  glm::vec4 asteroidColor;
+  hobot::Vec4 asteroidColor;
   int asteroidCount;
   float maxAsteroidSpeed;
   float maxAsteroidRadius;

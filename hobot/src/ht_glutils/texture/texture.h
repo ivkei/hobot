@@ -3,7 +3,7 @@
 #include<string>
 #include<vector>
 
-#include"glm/glm.hpp"
+#include"ht_math/math.h"
 
 namespace hobot{
 
@@ -33,7 +33,7 @@ public:
   inline unsigned int Width() const { return _width; }
   inline unsigned int Height() const { return _height; }
 
-  void Clear(glm::vec4 color = glm::vec4(1));
+  void Clear(Vec4 color = Vec4(1));
 };
 
 }

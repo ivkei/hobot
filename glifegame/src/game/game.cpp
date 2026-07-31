@@ -1,14 +1,16 @@
 #include"game.h"
 
+#include"hobot.h"
+
 hobot::WindowProps Game::GetWindowProps(){
   return {1920, 1080, "glifegame", 4.4, false};
 }
 
 static const int WIDTH = 192*4;
 static const int HEIGHT = 108*4;
-//static const glm::vec4 COLORALIVE = {0.85f, 0.08f, 0.2f, 1.0f};
-static const glm::vec4 COLORALIVE = {0.67f, 0.84f, 0.9f, 1.0f};
-static const glm::vec4 COLORDEAD = {0.1f, 0.1f, 0.1f, 1.0f};
+//static const hobot::Vec4 COLORALIVE = {0.85f, 0.08f, 0.2f, 1.0f};
+static const hobot::Vec4 COLORALIVE = {0.67f, 0.84f, 0.9f, 1.0f};
+static const hobot::Vec4 COLORDEAD = {0.1f, 0.1f, 0.1f, 1.0f};
 static const int STARTINGPOPULATION = 40;
 
 float Game::FixedInterval(){

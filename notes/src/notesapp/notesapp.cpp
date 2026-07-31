@@ -2,8 +2,6 @@
 
 #include<chrono>
 
-#include"glm/gtc/constants.hpp"
-
 #include"GL/glew.h"
 #include"GLFW/glfw3.h"
 
@@ -42,6 +40,13 @@ void NotesApp::Run(){
     renderer.Clear({0.1f, 0.1f, 0.1f, 1.0f});
     renderer.Trig({-0.5f, -0.5f}, {0.5f, -0.5f}, {0.0f, 0.5f},
                   {1, 0, 0, 1},   {0, 1, 0,1},   {0, 0, 1, 1});
+
+    if (_pWindow->IsKeyPressed(hobot::Key::W)){
+      HT_LOG_INFO("W");
+    }
+    if (_pWindow->IsKeyPressed(hobot::Key::SEMICOLON) && _pWindow->IsKeyPressed(hobot::Key::LSHIFT)){
+      HT_LOG_INFO(":");
+    }
 
     renderer.Render();
     _pWindow->PollEvents();

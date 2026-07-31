@@ -10,7 +10,7 @@ bool Field::GetAt(int x, int y) const{
 }
 
 //Cell size is between 0 and 1
-Field::Field(glm::vec2 dimensions, glm::vec4 colorAlive, glm::vec2 cellSize, glm::vec4 gapColor, glm::vec4 colorDead, int population)
+Field::Field(hobot::Vec2 dimensions, hobot::Vec4 colorAlive, hobot::Vec2 cellSize, hobot::Vec4 gapColor, hobot::Vec4 colorDead, int population)
 :_colorAlive(colorAlive), _cellSize(cellSize), _gapColor(gapColor), _colorDead(colorDead){
   for (int i = 0; i < dimensions.x; i++){
     _field.emplace_back();

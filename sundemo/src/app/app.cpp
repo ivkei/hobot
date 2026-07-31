@@ -21,7 +21,7 @@ void App::Run(){
 
   //Move the stars
   float move = 0.0f;
-  glm::vec2 vel = {1.0f, 0.0f};
+  hobot::Vec2 vel = {1.0f, 0.0f};
 
   //FPS
   float timer = 0;
@@ -45,12 +45,12 @@ void App::Run(){
     move+=deltaSeconds;
     srand(0);
     for (int i = 0; i < 300; i++){
-      auto pos = glm::vec2((rand() % 100000), (rand() % 100000)) + 50*move*vel*(float)(rand() % 100 + 1);
+      auto pos = hobot::Vec2((rand() % 100000), (rand() % 100000)) + 50*move*vel*(float)(rand() % 100 + 1);
       pos.x = ((int)pos.x % 100000)/50000.0f-1.0f;
       pos.y = ((int)pos.y % 100000)/50000.0f-1.0f;
-      renderer.Circle(pos, 0.005f, (rand() % 7) + 4, {1,1,1,1});
+      renderer.Reg(pos, 0.005f, (rand() % 7) + 4, {1,1,1,1});
     }
-    renderer.Circle({0, 0}, 0.3f, 75, {1.0f, 0.8f, 0.5f, 1.0f}, {0.9f, 0.4f, 0.1f, 1.0f}); //Sun
+    renderer.Reg({0, 0}, 0.3f, 75, {1.0f, 0.8f, 0.5f, 1.0f}, {0.9f, 0.4f, 0.1f, 1.0f}); //Sun
 
     renderer.Render();
     _pWindow->PollEvents();
