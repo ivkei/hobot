@@ -8,12 +8,22 @@
 
 namespace hobot{
 
-//Associate window instances with GLFWwindow
-//No PImpl because then cant utilize glfw callbacks
-static std::unordered_map<Window*, GLFWwindow*> addressToWindow;
+struct Window::Impl{
+  std::unordered_map<int, std::function<void()>> glfwKeyToFunc;
+  std::unordered_map<int, std::function<void()>> glfwMButtonToFunc;
+  GLFWwindow* pWindow;
+};
 
-static std::unordered_map<int, std::function<void()>> glfwKeyToFunc;
-static std::unordered_map<int, bool> glfwKeysHeld; //TODO: make into a static array
+//Associate window instances with GLFWwindow to retrieve within callbacks (if needed)
+static std::unordered_map<GLFWwindow*, Window*> g_glfwWindowToWindow;
+
+#define MAX_KEYS 1024
+//PImpl not used as global callback functions need to access those
+static std::unordered_map<GLFWwindow*, bool[MAX_KEYS]> g_glfwKeysHeld;
+
+#define MAX_MBUTTONS 32
+//Ditto for pImpl
+static std::unordered_map<GLFWwindow*, bool[MAX_MBUTTONS]> g_glfwMButtonsHeld;
 
 //Returns -1 if invalid
 //For shifted, maps to base
@@ -101,18 +111,40 @@ static int KeyToGLFW(Key key){
   }
 }
 
-//Otherwise jerky motions due to OS specific timings
+//Returns -1 if invalid
+static int MButtonToGLFW(MButton button){
+  switch (button){
+    case MButton::LEFT:     return GLFW_MOUSE_BUTTON_LEFT;
+    case MButton::RIGHT:    return GLFW_MOUSE_BUTTON_RIGHT;
+    case MButton::MIDDLE:   return GLFW_MOUSE_BUTTON_MIDDLE;
+    default:                return -1;
+  }
+}
+
+//Otherwise, when functions are called here, jerky motions due to OS specific timings, better to call in PollEvents
 static void KeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mods){
-  if ((action == GLFW_PRESS) && glfwKeysHeld.contains(key)){
+  auto& glfwKeysHeld = g_glfwKeysHeld[pWindow];
+
+  if (action == GLFW_PRESS){
     glfwKeysHeld[key] = true;
-  } else if (action == GLFW_RELEASE && glfwKeysHeld.contains(key)){
+  } else if (action == GLFW_RELEASE){
     glfwKeysHeld[key] = false;
+  }
+}
+
+static void MButtonCallback(GLFWwindow* pWindow, int button, int action, int mods){
+  auto& glfwMButtonsHeld = g_glfwMButtonsHeld[pWindow];
+
+  if (action == GLFW_PRESS){
+    glfwMButtonsHeld[button] = true;
+  } else if (action == GLFW_RELEASE){
+    glfwMButtonsHeld[button] = false;
   }
 }
 
 //Just define them here for now
 Window::Window(WindowProps props)
-: _props(props){
+: _props(props), _pImpl(std::make_unique<Window::Impl>()){
   //Init glfw
   if (!glfwInit()){
     HT_LOG_ERROR("Couldnt init glfw");
@@ -143,7 +175,8 @@ Window::Window(WindowProps props)
 
   //Create window with its OpenGL context
   GLFWwindow* pWindow = glfwCreateWindow(props.width, props.height, props.name.c_str(), NULL, NULL); //NULLs for fullscreen and sharing context
-  addressToWindow.emplace(this, pWindow);
+  g_glfwWindowToWindow.emplace(pWindow, this);
+  _pImpl->pWindow = pWindow;
   if (!pWindow){
     HT_LOG_ERROR("Couldnt create window (glfw)");
     glfwTerminate();
@@ -168,76 +201,80 @@ Window::Window(WindowProps props)
   _pRenderer->SetViewport({0, 0}, {1, 1});
   //Viewport has to be adjusted for whenever the window is resized
   glfwSetFramebufferSizeCallback(pWindow, [](GLFWwindow* pWindow, int width, int height){
-      auto it = std::find_if(addressToWindow.begin(), addressToWindow.end(), [pWindow](const auto& pair){
-        return pair.second == pWindow;
-      });
-      Window* pWindowWrap = it->first;
+    Window* pWindowWrap = g_glfwWindowToWindow[pWindow];
 
-      pWindowWrap->SetProps({width, height, pWindowWrap->Name(), -1, true});
-      const auto& renderer = pWindowWrap->GetRenderer();
-      Vec4 oldViewport = renderer.GetViewport();
-      renderer.SetViewport({oldViewport.x, oldViewport.y}, {oldViewport.z, oldViewport.w}); //The viewport is still the same, just need to update it
+    pWindowWrap->SetProps({width, height, pWindowWrap->Name(), -1, true});
+    const auto& renderer = pWindowWrap->GetRenderer();
+    Vec4 oldViewport = renderer.GetViewport();
+    renderer.SetViewport({oldViewport.x, oldViewport.y}, {oldViewport.z, oldViewport.w}); //The viewport is still the same, just need to update it
   });
+
+  //Set the keys to false
+  for (bool& i : g_glfwKeysHeld[pWindow]){
+    i = false;
+  }
+
+  //Mouse
+  for (bool& i : g_glfwMButtonsHeld[pWindow]){
+    i = false;
+  }
+  glfwSetMouseButtonCallback(pWindow, MButtonCallback);
 
   HT_LOG_SUCCESS("Window constructed");
 }
 
 Window::~Window(){
-  addressToWindow.erase(this);
+  g_glfwWindowToWindow.erase(_pImpl->pWindow);
   glfwTerminate();
   //Clean all glfw's allocated resources, its made in c :(
 }
 
 void Window::Bind(){
-  GLFWwindow* pWindow = addressToWindow.at(this);
-  glfwMakeContextCurrent(pWindow);
+  glfwMakeContextCurrent(_pImpl->pWindow);
 }
 
 void Window::SetCallback(Key key, std::function<void()> callback){
   int glfwKey = KeyToGLFW(key);
   HT_LOG_ASSERT(glfwKey != -1, "Invalid key passed to Window::SetCallback");
 
-  if (glfwKeyToFunc.contains(glfwKey)){
-    glfwKeyToFunc.erase(glfwKey);
+  if (_pImpl->glfwKeyToFunc.contains(glfwKey)){
+    _pImpl->glfwKeyToFunc.erase(glfwKey);
   }
-  glfwKeyToFunc.emplace(glfwKey, callback);
-
-  if (!glfwKeysHeld.contains(glfwKey)) glfwKeysHeld.emplace(glfwKey, false);
+  _pImpl->glfwKeyToFunc.emplace(glfwKey, callback);
 }
 void Window::DelCallback(Key key){
   int glfwKey = KeyToGLFW(key);
   HT_LOG_ASSERT(glfwKey != -1, "Invalid key passed to Window::DelCallback");
-  if (glfwKeyToFunc.contains(glfwKey)){
-    glfwKeyToFunc.erase(glfwKey);
+
+  if (_pImpl->glfwKeyToFunc.contains(glfwKey)){
+    _pImpl->glfwKeyToFunc.erase(glfwKey);
   }
-  if (glfwKeysHeld.contains(glfwKey)) glfwKeysHeld.erase(glfwKey);
 }
 bool Window::ShouldTerminate(bool should){
-  GLFWwindow* pWindow = addressToWindow.at(this);
-  if (should) glfwSetWindowShouldClose(pWindow, true);
-  return glfwWindowShouldClose(pWindow);
+  if (should) glfwSetWindowShouldClose(_pImpl->pWindow, true);
+  return glfwWindowShouldClose(_pImpl->pWindow);
 }
 void Window::SwapBuffers(){
-  GLFWwindow* pWindow = addressToWindow.at(this);
-  glfwSwapBuffers(pWindow);
+  glfwSwapBuffers(_pImpl->pWindow);
 }
 void Window::PollEvents(){
-  GLFWwindow* pWindow = addressToWindow.at(this);
   glfwPollEvents();
 
   //Handle key callbacks
-  for (auto& i : glfwKeysHeld){
-    if (i.second){
-      if (glfwKeyToFunc.contains(i.first)) glfwKeyToFunc[i.first]();
-    }
+  for (auto&& i : _pImpl->glfwKeyToFunc){
+    if (g_glfwKeysHeld[_pImpl->pWindow][i.first]) i.second();
+  }
+
+  //Handle mbutton callbacks
+  for (auto&& i : _pImpl->glfwMButtonToFunc){
+    if (g_glfwMButtonsHeld[_pImpl->pWindow][i.first]) i.second();
   }
 }
 
 void Window::SetProps(WindowProps props){
   this->_props = props;
-  GLFWwindow* pWindow = addressToWindow.at(this);
-  glfwSetWindowSize(pWindow, props.width, props.height);
-  glfwSetWindowTitle(pWindow, props.name.c_str());
+  glfwSetWindowSize(_pImpl->pWindow, props.width, props.height);
+  glfwSetWindowTitle(_pImpl->pWindow, props.name.c_str());
   glfwWindowHint(GLFW_RESIZABLE, props.resizable);
 
   _pRenderer->_SetWindowProps(props);
@@ -252,12 +289,39 @@ void Window::SetVSync(bool enabled){
 bool Window::IsKeyPressed(Key key){
   int glfwKey = KeyToGLFW(key);
   HT_LOG_ASSERT(glfwKey != -1, "Invalid key passed to IsKeyPressed!");
-  if (!glfwKeysHeld.contains(glfwKey)) glfwKeysHeld.emplace(glfwKey, false);
-  return glfwKeysHeld[glfwKey];
+
+  return g_glfwKeysHeld[_pImpl->pWindow][glfwKey];
 }
 
 Vec2 Window::MousePos(){
-  //TODO
+  double x;
+  double y;
+  glfwGetCursorPos(_pImpl->pWindow, &x, &y);
+  return Vec2(x, y);
+}
+
+bool Window::IsMButtonPressed(MButton button){
+  //Depends on PollEvents (mouse can be pressed and released in between of 2 calls, and this wont register that)
+  int glfwButton = MButtonToGLFW(button);
+  return glfwGetMouseButton(_pImpl->pWindow, glfwButton) == GLFW_PRESS;
+}
+void Window::SetCallback(MButton button, std::function<void()> callback){
+  int glfwButton = MButtonToGLFW(button);
+  HT_LOG_ASSERT(glfwButton != -1, "Invalid button passed to Window::SetCallback");
+
+  if (_pImpl->glfwMButtonToFunc.contains(glfwButton)){
+    _pImpl->glfwMButtonToFunc.erase(glfwButton);
+  }
+  _pImpl->glfwMButtonToFunc.emplace(glfwButton, callback);
+}
+
+void Window::DelCallback(MButton button){
+  int glfwButton = MButtonToGLFW(button);
+  HT_LOG_ASSERT(glfwButton != -1, "Invalid button passed to Window::DelCallback");
+
+  if (_pImpl->glfwMButtonToFunc.contains(glfwButton)){
+    _pImpl->glfwMButtonToFunc.erase(glfwButton);
+  }
 }
 
 }

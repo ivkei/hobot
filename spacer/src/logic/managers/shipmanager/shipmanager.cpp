@@ -29,17 +29,13 @@ void ShipManager::Manage(Ship& ship, float speedScale, float angularSpeedScale){
   //Rotation
   float rotationalDirection = 0;
   if (_pLogic->IsKeyPressed(hobot::Key::A)){
-    rotationalDirection = -1;
-  }
-  if (_pLogic->IsKeyPressed(hobot::Key::D)){
     rotationalDirection = 1;
   }
+  if (_pLogic->IsKeyPressed(hobot::Key::D)){
+    rotationalDirection = -1;
+  }
   float theta = rotationalDirection*angularSpeedScale*ship.angularSpeed;
-  hobot::Mat2 shipRotation = {
-    std::cos(theta), -std::sin(theta),
-    std::sin(theta), std::cos(theta)
-  };
-  ship.direction = shipRotation*ship.direction;
+  ship.direction = hobot::Rotate(theta, ship.direction);
 
   //Ship edge handling (wrap position)
   ship.pos = _wrapFunc(ship.pos);

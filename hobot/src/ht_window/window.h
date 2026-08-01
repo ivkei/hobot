@@ -6,6 +6,7 @@
 #include"ht_api.h"
 #include"ht_renderer/renderer.h"
 #include"ht_keys.h"
+#include"ht_mbuttons.h"
 #include"ht_window/windowprops.h"
 
 namespace hobot{
@@ -15,6 +16,9 @@ class HOBOT_API Window final{
 private:
   WindowProps _props;
   std::unique_ptr<Renderer> _pRenderer;
+
+  struct Impl;
+  std::unique_ptr<Impl> _pImpl;
 public:
   Window(Window&) = delete;
   Window& operator=(Window&) = delete;
@@ -31,13 +35,18 @@ public:
   ~Window();
 
   void Bind(); //Binds the context, no need to call unless multithreaded context
-  //Callbacks
+  //Callbacks (highly advised to use IsKeyPressed instead)
   void SetCallback(Key, std::function<void()> callback); //Overwrites callbacks, and notice that callback is called on repeat
   void DelCallback(Key);
   //Keys (Note that shift isnt handled, handle it yourself)
   bool IsKeyPressed(Key key);
 
   //Mouse
+  bool IsMButtonPressed(MButton button);
+  void SetCallback(MButton, std::function<void()> callback); //Overwrites callbacks, and notice that callback is called on repeat
+  void DelCallback(MButton);
+
+  //Returns a value in window coordinates
   Vec2 MousePos();
 
   bool ShouldTerminate(bool should = false); //Getter and setter

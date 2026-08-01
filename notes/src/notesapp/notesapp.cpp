@@ -41,11 +41,18 @@ void NotesApp::Run(){
     renderer.Trig({-0.5f, -0.5f}, {0.5f, -0.5f}, {0.0f, 0.5f},
                   {1, 0, 0, 1},   {0, 1, 0,1},   {0, 0, 1, 1});
 
+    //Keys
     if (_pWindow->IsKeyPressed(hobot::Key::W)){
       HT_LOG_INFO("W");
     }
     if (_pWindow->IsKeyPressed(hobot::Key::SEMICOLON) && _pWindow->IsKeyPressed(hobot::Key::LSHIFT)){
       HT_LOG_INFO(":");
+    }
+
+    //Mouse
+    HT_LOG_INFO(_pWindow->MousePos());
+    if (_pWindow->IsMButtonPressed(hobot::MButton::LEFT)){
+      HT_LOG_INFO("MButton::LEFT");
     }
 
     renderer.Render();

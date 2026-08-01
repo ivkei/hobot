@@ -17,11 +17,11 @@ class Game;
 
 class Logic{
 private:
-  std::unordered_map<hobot::Key, bool> _keysPressed;
   float _deltaSeconds;
   ShipManager _shipManager;
   AsteroidsManager _asteroidsManager;
   ProjectileManager _projectileManager;
+  hobot::Window& _window;
   Game* _pGame;
   float _secondsElapsed;
 public:
@@ -31,7 +31,7 @@ public:
   float FixedInterval();
   void FixedExecute(Field& field, Asteroids& asteroids, Ship& ship, Projectiles& projectiles, float deltaSeconds);
 
-  bool IsKeyPressed(hobot::Key key){ if (_keysPressed.contains(key)) return _keysPressed[key]; return false;};
+  bool IsKeyPressed(hobot::Key key){ return _window.IsKeyPressed(key);};
   float DeltaSeconds() const {return _deltaSeconds;}
 
   void GameOver();

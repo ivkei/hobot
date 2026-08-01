@@ -3,7 +3,6 @@
 namespace hobot{
 
 enum class Key{
-  //Keyboard
   W, A, S, D, ESC, SPC,
   B, C, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, T, U, V, X, Y, Z,
   LSHIFT, LCTRL, TAB, LALT, RSHIFT, RCTRL, RALT,
@@ -13,9 +12,7 @@ enum class Key{
   F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
   RBPAR, LBPAR,
   SUPER,
-  EQ, MINUS
-
-  //Mouse
+  EQ, MINUS,
 };
 
 }

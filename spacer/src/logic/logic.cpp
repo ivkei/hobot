@@ -10,12 +10,6 @@ void Logic::FixedExecute(Field& field, Asteroids& asteroids, Ship& ship, Project
   HT_LOG_INFO("Score: ", (int)std::round(_secondsElapsed)*10 + projectiles.shotDown*100);
 }
 
-#define KeyCallback(key)\
-  if (!_keysPressed.contains(hobot::Key::key)) _keysPressed.emplace(hobot::Key::key, false);\
-  window.SetCallback(hobot::Key::key, [&](){\
-    this->_keysPressed[hobot::Key::key] = true;\
-  });\
-
 template<hobot::Vec2 min, hobot::Vec2 max>
 static hobot::Vec2 Wrap(hobot::Vec2 v){
   if (v.x > max.x) v.x = min.x;
@@ -54,13 +48,7 @@ Logic::Logic(hobot::Window& window, Ship& initShip, Asteroids& initAsteroids, Pr
   _asteroidsManager(this, [&](hobot::Vec2 pos){return Wrap(pos, AsteroidsBounds);},
                     [&](hobot::Vec2 pos){ return IsWithin(pos, AsteroidsBounds);}), //Safe to assume address will be valid (managed by game that also manages logic)
   _pGame(pGame), _projectileManager(this, Wrap<{-1.05f, -1.05f}, {1.05f, 1.05f}>, [](hobot::Vec2 pos){return FuzzPos(pos, {-0.05f, -0.05f}, {0.05f, 0.05f});}, initProjectiles),
-  _secondsElapsed(0){
-  //Safe to assume logic will not be destroyed as game and app manage window and it
-  KeyCallback(W);
-  KeyCallback(A);
-  KeyCallback(S);
-  KeyCallback(D);
-  KeyCallback(SPC);
+  _secondsElapsed(0), _window(window){
 }
 
 void Logic::Execute(Field& field, Asteroids& asteroids, Ship& ship, Projectiles& projectiles, float deltaSeconds){
@@ -80,12 +68,6 @@ void Logic::Execute(Field& field, Asteroids& asteroids, Ship& ship, Projectiles&
   _shipManager.Manage(ship, speedScale, angularSpeedScale);
   _asteroidsManager.Manage(asteroids, speedScale, angularSpeedScale, ship);
   _projectileManager.Manage(ship, asteroids, projectiles, speedScale);
-
-  //Reset inputs
-  for (auto& i : _keysPressed){
-    i.second = false;
-  }
-
 }
 
 void Logic::GameOver(){
