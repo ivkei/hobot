@@ -14,7 +14,7 @@ private:
   unsigned int _height;
 public:
   //Path to png image
-  Texture(std::string path);
+  Texture(std::string path, bool generateMipmaps = true);
 
   Texture(const Texture&) = delete;
   Texture& operator=(const Texture&) = delete;

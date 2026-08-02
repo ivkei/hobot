@@ -9,7 +9,7 @@
 namespace hobot{
 
 //TODO: add path support
-Texture::Texture(std::string path){
+Texture::Texture(std::string path, bool generateMipmaps){
 }
 
 Texture::Texture(Texture&& rhs)

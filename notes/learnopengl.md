@@ -524,11 +524,19 @@ GLCall(glBindTexture(GL_TEXTURE_2D, _id));
 //For minifying, if the aspect ratio is different, where each pixel doesnt map to a texel, the texture filtering is needed
 //If theres a pattern such as a brick wall, just choosing with intervals wont display it potentially
 //And flickering will occur as even the slightest change will change the texel sampled
-GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)); //Done for each texture individually
+//GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)); //Done for each texture individually
+//GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+//Or (If using mipmaps)
+GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)); //Done for each texture individually
 GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+//Mag doesnt use mipmaps, OpenGL will throw an error
 
 GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)); //S (X)
 GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)); //T (Y)
+
+//Generates mipmaps
+GLCall(glGenerateMipmap(GL_TEXTURE_2D));
                                                                              //R (Z)
 //If specify coordinates outside 0-1 box (Texture wrapping)
 //Options:
@@ -565,3 +573,23 @@ GLCall(glClearTexImage(_id, 0, GL_RGBA, GL_FLOAT, &color));
 //2nd is level
 }
 ```
+
+### Mipmaps
+- Using high resolution textures on small objects is just a waste of resources for one thing
+- and OpenGL has difficulties properly choosing a color for 1 fragment that spans multiple texels.
+- Thats where `Mipmaps` come in, its an array of textures with each subsequent one twice as small as the previous.
+- Smaller ones are used on objects far away from the camera.
+- OpenGL allows to do it with one call to `glGenerateMipmap(target)`;
+- Since smaller mipmap layers can still generate sharp edges and artifacts (mipmaps dont solve the texture filtering problem),
+- it is possible to set texture filtering for them.
+  * Note that GL_LINEAR and GL_NEAREST will ignore mipmaps.
+- So the options are:
+  * GL_NEAREST_MIPMAP_NEAREST - takes in the nearest mipmap to match the pixel
+    size and uses nearest neighbor interpolation.
+  * GL_LINEAR_MIPMAP_NEAREST  - takes the nearest mipmap level and samples that
+    level using linear interpolation.
+  * GL_NEAREST_MIPMAP_LINEAR - linearly interpolates between 2 mipmaps that
+    most closely match the pixel size, and samples the interpolated level via
+    nearest neighbor interpolation.
+  * GL_LINEAR_MIPMAP_LINEAR - linearly interpolate between 2 mipmaps and their
+    created level.

@@ -47,9 +47,9 @@ struct Renderer::PImpl{
   int maxImageSlots;
 };
 
-void Renderer::SetTexture(std::string path, std::string name) const{
+void Renderer::SetTexture(std::string path, std::string name, bool generateMipmaps) const{
   if (_pImpl->textures.contains(name)) _pImpl->textures.erase(name);
-  _pImpl->textures.emplace(name, Texture(path));
+  _pImpl->textures.emplace(name, Texture(path, generateMipmaps));
 }
 void Renderer::SetTexture(unsigned int width, unsigned int height, std::string name) const{
   if (_pImpl->textures.contains(name)) _pImpl->textures.erase(name);

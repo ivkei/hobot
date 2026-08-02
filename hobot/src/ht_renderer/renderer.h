@@ -31,7 +31,7 @@ public:
   ~Renderer();
 
   //Textures (dont bind more than allowed at once, query MaxTextures, note that indexing starts with 0)
-  void SetTexture(std::string path, std::string name) const; //Both overwrite a texture if name is repeated
+  void SetTexture(std::string path, std::string name, bool generateMipmaps = true) const; //Both overwrite a texture if name is repeated
   void SetTexture(unsigned int width, unsigned int height, std::string name) const;
   void BindTexture(std::string name, unsigned int slot = 0, bool image = false) const;
   void ClearTexture(std::string name, hobot::Vec4 color = hobot::Vec4(1)) const;
