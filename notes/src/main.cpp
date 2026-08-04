@@ -9,5 +9,5 @@ extern std::unique_ptr<hobot::Application> hobot::CreateApplication(){
 HOBOT_ENTRY_POINT
 
 //TODO: add texture support to hobot (sprites?)
-//TODO: Stopped at mipmaps
+//TODO: Stopped after mipmaps
 //TODO: watch sparky/Hazel series

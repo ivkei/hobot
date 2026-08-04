@@ -99,6 +99,8 @@ public:
   void Reg(hobot::Vec2 pos, float r, int vertices, hobot::Vec4 centerColor, hobot::Vec4 circumferenceColor, float rotation = 0) const;
   //pos = center of the circle coordinates
   void Reg(hobot::Vec2 pos, float r, int vertices, bool isRainbow = false, float rotation = 0) const;
+
+  void SetWireframe(bool enabled);
 };
 
 }

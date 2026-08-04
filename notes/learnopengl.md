@@ -593,3 +593,4 @@ GLCall(glClearTexImage(_id, 0, GL_RGBA, GL_FLOAT, &color));
     nearest neighbor interpolation.
   * GL_LINEAR_MIPMAP_LINEAR - linearly interpolate between 2 mipmaps and their
     created level.
+TODO: make a demo to see how it looks

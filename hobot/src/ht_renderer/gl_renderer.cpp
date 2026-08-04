@@ -502,4 +502,12 @@ void Renderer::RawLayout(const std::vector<LayoutElement>& layout) const{
   _pImpl->rawVao.Unbind();
 }
 
+void Renderer::SetWireframe(bool enabled){
+  if (enabled) {
+    GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+  } else {
+    GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+  }
+}
+
 }
