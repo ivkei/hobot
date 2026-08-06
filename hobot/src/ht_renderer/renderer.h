@@ -2,6 +2,7 @@
 
 #include<memory>
 #include<functional>
+#include<array>
 
 #include"ht_api.h"
 #include"ht_window/windowprops.h"
@@ -30,6 +31,8 @@ public:
   Renderer(WindowProps props);
   ~Renderer();
 
+  //===Sprites & Textures===
+
   //Textures (dont bind more than allowed at once, query MaxTextures, note that indexing starts with 0)
   void SetTexture(std::string path, std::string name, bool generateMipmaps = true) const; //Both overwrite a texture if name is repeated
   void SetTexture(unsigned int width, unsigned int height, std::string name) const;
@@ -38,8 +41,23 @@ public:
   int MaxTextures() const; //Read-only, optimized for drawing
   int MaxImages() const; //Read and write
 
+  void Sprite(std::string path, hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color = hobot::Vec4(1)) const;
+  //Ordered mode is same as for quad
+  //Tex are the tex coordinates (where to sample from for each vertex):
+  //0,1---1,1
+  // |     |
+  // |     |
+  //0,0---1,0
+  void Sprite(std::string path, hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2, hobot::Vec2 pos3,
+                                hobot::Vec4 col0, hobot::Vec4 col1, hobot::Vec4 col2, hobot::Vec4 col3,
+                                hobot::Vec2 tex0, hobot::Vec2 tex1, hobot::Vec2 tex2, hobot::Vec2 tex3, bool orderedMode = false) const;
+
+  //===Render (Flushing) & Clear===
+
   void Render() const;
   void Clear(hobot::Vec4 color = hobot::Vec4(0, 0, 0, 1)) const;
+
+  //===Viewport & IsValid===
 
   bool IsValid() const;
   //Both start and dimensions are between 0 and 1, thats because its independent of window's size
@@ -47,33 +65,50 @@ public:
   hobot::Vec4 GetViewport() const;
   void _SetWindowProps(WindowProps props);
 
+  //===Raw pipeline===
   //Custom pipeline
   //Notice that it accumulates, and on render clears (no need to adjust indices for past objects, treat each as first)
   //Size is for data's size in bytes
+
   void Raw(const void* data, unsigned int size, const std::vector<unsigned int>& indices) const;
   void RawLayout(const std::vector<LayoutElement>& layout) const;
 
-  static const char* DefaultFragShader;
-  static const char* DefaultVertShader;
+  //===Uniforms & DefaultShaders===
+  //Note that Fixed and Sprite pipelines are defaulted to those
 
-  void Uniform(const char* name, int i, bool fixed = true) const;
-  void Uniform(const char* name, float f, bool fixed = true) const;
-  void Uniform(const char* name, hobot::Mat4 m, bool fixed = true) const;
-  void Uniform(const char* name, hobot::Vec4 v, bool fixed = true) const;
-  void Uniform(const char* name, hobot::Vec2 v, bool fixed = true) const;
+  //In order to select shaders for certain pipelines
+  //Note that nothing stops the client from using the same shader for sprites and fixed
+  enum class Pipeline{
+    Fixed, Raw, Sprite
+  };
 
-  //Interprets first arg as source if second is false, otherwise parses a file via a file path, use hobot::GetExecDir() if needed
+  static const char* DefaultFixedFragShader;
+  static const char* DefaultFixedVertShader;
+
+  static const char* DefaultSpriteFragShader;
+  static const char* DefaultSpriteVertShader;
+
+  void Uniform(const char* name, int i,         Pipeline pipeline = Pipeline::Fixed) const;
+  void Uniform(const char* name, float f,       Pipeline pipeline = Pipeline::Fixed) const;
+  void Uniform(const char* name, hobot::Mat4 m, Pipeline pipeline = Pipeline::Fixed) const;
+  void Uniform(const char* name, hobot::Vec4 v, Pipeline pipeline = Pipeline::Fixed) const;
+  void Uniform(const char* name, hobot::Vec2 v, Pipeline pipeline = Pipeline::Fixed) const;
+
+  //===Shaders===
+
+  //Interprets first arg as source if second is false, otherwise parses a file via a file path, uses hobot::ReadRel()
   //Path is relative to exec file
   //Fixed is for pre-made functions such as trig, fixed=false implies shader source for Raw()
   //Make recompile=false in case you dont want to recompile after changing shader
-  //Shaders are set to default by default
-  void FragShader(const char* string = DefaultFragShader, bool isPath = false, bool fixed = true, bool recompile = true) const;
-  void VertShader(const char* string = DefaultVertShader, bool isPath = false, bool fixed = true, bool recompile = true) const;
+  //Shaders are set to default by default for fixed and Sprite pipelines ONLY!
+  void FragShader(const char* string = DefaultFixedFragShader, bool isPath = false, Pipeline pipeline = Pipeline::Fixed, bool recompile = true) const;
+  void VertShader(const char* string = DefaultFixedVertShader, bool isPath = false, Pipeline pipeline = Pipeline::Fixed, bool recompile = true) const;
 
   //Use this if specifying both, otherwise errors are given as its trying to recompile with incompatible
-  void Shaders(const char* vStr = DefaultVertShader, const char* fStr = DefaultFragShader, bool vIsPath = false, bool fIsPath = false, bool fixed = true) const;
+  //Using this is highly advised!
+  void Shaders(const char* vStr = DefaultFixedVertShader, const char* fStr = DefaultFixedFragShader, bool vIsPath = false, bool fIsPath = false, Pipeline pipeline = Pipeline::Fixed) const;
 
-  //"Fixed-function pipeline"
+  //===Fixed pipeline===
 
   //pos = bottom-left vertex pos, dimensions = width, height
   void Quad(hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color = hobot::Vec4(1)) const;
@@ -83,23 +118,22 @@ public:
   //  -Trig1 is vertex0, vertex1, and vertex2
   //  -Trig2 is vertex1, vertex2, and vertex3
   //If its improper (that is it doesnt follow such a pattern), weird "rectangles" can be drawn where one overlaps the other
-  void Quad(hobot::Vec2 vertexPos0, hobot::Vec2 vertexPos1, hobot::Vec2 vertexPos2, hobot::Vec2 vertexPos3,
-            hobot::Vec4 vertexColor0, hobot::Vec4 vertexColor1, hobot::Vec4 vertexColor2, hobot::Vec4 vertexColor3, bool orderedMode = false) const;
+  void Quad(hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2, hobot::Vec2 pos3,
+            hobot::Vec4 col0, hobot::Vec4 col1, hobot::Vec4 col2, hobot::Vec4 col3, bool orderedMode = false) const;
 
   //pos = bottom-left vertex pos, dimensions = base width, height, triangle = right
   void Trig(hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color = hobot::Vec4(1)) const;
-  void Trig(hobot::Vec2 vertexPos0, hobot::Vec2 vertexPos1, hobot::Vec2 vertexPos2,
-            hobot::Vec4 vertexColor0, hobot::Vec4 vertexColor1, hobot::Vec4 vertexColor2) const;
+  void Trig(hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2,
+            hobot::Vec4 col0, hobot::Vec4 col1, hobot::Vec4 col2) const;
 
   //It draws regular polygons
   //rotation in rads
-  //pos = center of the circle coordinates
+  //pos = center of the circumcircle coordinates
   void Reg(hobot::Vec2 pos, float r, int vertices = 30, hobot::Vec4 color = hobot::Vec4(1), float rotation = 0) const;
-  //pos = center of the circle coordinates
   void Reg(hobot::Vec2 pos, float r, int vertices, hobot::Vec4 centerColor, hobot::Vec4 circumferenceColor, float rotation = 0) const;
-  //pos = center of the circle coordinates
-  void Reg(hobot::Vec2 pos, float r, int vertices, bool isRainbow = false, float rotation = 0) const;
+  //TODO: pallete version?
 
+  ///===Utils===
   void SetWireframe(bool enabled);
 };
 
