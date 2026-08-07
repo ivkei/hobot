@@ -27,7 +27,6 @@ void ShipManager::Manage(Ship& ship, float speedScale, float angularSpeedScale){
   ship.velocity=newShipVel;
   ship.pos+=ship.velocity*speedScale*50000000.0f; //NOTE: speedScale must be applied TWICE as its acceleration (Physics)
   //Velocity*dt = pos
-  HT_LOG_INFO(speedScale);
 
   //Rotation
   float rotationalDirection = 0;

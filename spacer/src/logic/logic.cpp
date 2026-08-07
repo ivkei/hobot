@@ -56,8 +56,6 @@ void Logic::Execute(Field& field, Asteroids& asteroids, Ship& ship, Projectiles&
   float speedScale = 0.00005f*deltaSeconds;
   float angularSpeedScale = 2.0f*deltaSeconds;
 
-  HT_LOG_INFO(speedScale);
-
   _deltaSeconds = deltaSeconds;
   _secondsElapsed+=deltaSeconds;
 
