@@ -3,16 +3,16 @@ architecture "x64"
 configurations
 {
   "Debug",
-  "Release"
+  "Release",
+  "Dist"
 }
-targetdir("../build/bin/")
-objdir("../build/bin-int/")
+targetdir("../build/%{cfg.buildcfg}/bin/")
+objdir("../build/bin-int/") -- Already have cfg distinction
 cppdialect "C++23"
 
 include "../hobot/"
 
 project "spacer"
-  kind "ConsoleApp"
   language "C++"
   staticruntime "On"
 
@@ -49,8 +49,20 @@ project "spacer"
     runtime "Debug"
     symbols "on"
     defines "_HOBOT_DEBUG"
+    kind "ConsoleApp"
 
   filter "configurations:Release"
     runtime "Release"
-    optimize "on"
+    optimize "full"
+    linktimeoptimization"On"
+    defines "_HOBOT_DEBUG"
+    kind "ConsoleApp"
+
+  filter "configurations:Dist"
+    runtime "Release"
+    optimize "full"
+    linktimeoptimization"On"
     defines "_HOBOT_RELEASE"
+    kind "WindowedApp"
+
+--NOTE: my most complete premake5.lua

@@ -154,7 +154,7 @@ Renderer::Renderer(WindowProps props)
   HT_LOG_INFO("Max image slots: ", _pImpl->maxImageSlots);
 
   //Sprite
-  this->Shaders(DefaultSpriteVertShader, DefaultSpriteFragShader, false, false, Pipeline::Sprite);
+  //this->Shaders(DefaultSpriteVertShader, DefaultSpriteFragShader, false, false, Pipeline::Sprite); //TODO: uncomment
   VBOLayout spriteLayout;
   spriteLayout.Push<float>(2); //Pos
   spriteLayout.Push<float>(4); //Color
@@ -230,8 +230,6 @@ void Renderer::Render() const{
   if (fixedIbo.size() > 2){
     glDrawElements(GL_TRIANGLES, fixedIbo.size(), GL_UNSIGNED_INT, NULL);
   }
-  fixedVao.Unbind();
-  fixedShader.Unbind();
   //Raw draw
   if (rawIbo.size() > 2 && pRawData){
     HT_LOG_ASSERT(rawShader.IsValid(), "Raw shader is invalid, please specify it with Vert and Frag");
@@ -242,8 +240,6 @@ void Renderer::Render() const{
     rawVao.AddLayout(_pImpl->rawLayout);
 
     glDrawElements(GL_TRIANGLES, rawIbo.size(), GL_UNSIGNED_INT, (void*)(fixedIbo.size()*sizeof(unsigned int)));
-    rawShader.Unbind();
-    rawVao.Unbind();
 
     //Next batch preparation
     rawSize = 0;
@@ -251,7 +247,7 @@ void Renderer::Render() const{
     rawMaxIndex = 0;
   }
   //Sprites (in batches of whatever number allowed)
-  if (!spriteIbo.empty()){
+  if (spriteIbo.size()){
     spriteShader.Bind();
     spriteVao.Bind();
     //TODO
@@ -271,8 +267,10 @@ void Renderer::Render() const{
   spriteIbo.clear();
   spriteVbo.clear();
   sprites.clear();
-  for (auto&& i : _pImpl->spriteTextureCache){
-    if (i.second.second-- <= 0) _pImpl->spriteTextureCache.erase(i.first);
+  if (_pImpl->spriteTextureCache.size()){
+    for (auto&& i : _pImpl->spriteTextureCache){
+      if (i.second.second-- <= 0) _pImpl->spriteTextureCache.erase(i.first);
+    }
   }
 }
 
@@ -430,7 +428,7 @@ const char* Renderer::DefaultSpriteFragShader =
 "  oColor = mix(vColor, texture(vSprite, vTexCoord), vec4(0.5, 0.5, 0.5, 0.5));\n"
 "}\n";
 
-const char* DefaultSpriteVertShader =
+const char* Renderer::DefaultSpriteVertShader =
 "#version 330 core\n"
 "layout (location = 0) in vec2 iPos;\n"
 "layout (location = 1) in vec4 iColor;\n"

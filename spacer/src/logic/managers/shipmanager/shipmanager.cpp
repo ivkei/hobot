@@ -13,6 +13,7 @@ void ShipManager::Manage(Ship& ship, float speedScale, float angularSpeedScale){
   hobot::Vec2 newShipVel = ship.velocity;
   if (_pLogic->IsKeyPressed(hobot::Key::W)){
     newShipVel += ship.direction*speedScale*ship.speed;
+    //Acceleration*dt = velocity
   }
   if (_pLogic->IsKeyPressed(hobot::Key::S)){
     newShipVel *= (1.0f-10000.0f*(speedScale*ship.speed));
@@ -24,7 +25,9 @@ void ShipManager::Manage(Ship& ship, float speedScale, float angularSpeedScale){
 
   //Add ships vel
   ship.velocity=newShipVel;
-  ship.pos+=ship.velocity;
+  ship.pos+=ship.velocity*speedScale*50000000.0f; //NOTE: speedScale must be applied TWICE as its acceleration (Physics)
+  //Velocity*dt = pos
+  HT_LOG_INFO(speedScale);
 
   //Rotation
   float rotationalDirection = 0;

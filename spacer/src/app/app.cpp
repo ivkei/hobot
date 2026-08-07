@@ -35,7 +35,13 @@ void App::Run(){
     //FPS
     frames++;
     if ((fpsTimer+=deltaSeconds)>=1){
-      HT_LOG_INFO("FPS: ", frames);
+      HT_LOG_INFO("FPS: ", frames); //Log
+
+      //Append it to title
+      hobot::WindowProps props = _game.GetWindowProps(); //Gets default
+      props.name += " FPS: " + std::to_string(frames);
+      _pWindow->SetProps(props);
+
       frames = 0;
       fpsTimer = 0;
     }

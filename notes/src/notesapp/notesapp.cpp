@@ -38,22 +38,16 @@ void NotesApp::Run(){
     }
 
     renderer.Clear({0.1f, 0.1f, 0.1f, 1.0f});
-    renderer.Trig({-0.5f, -0.5f}, {0.5f, -0.5f}, {0.0f, 0.5f},
-                  {1, 0, 0, 1},   {0, 1, 0,1},   {0, 0, 1, 1});
 
-    //Keys
-    if (_pWindow->IsKeyPressed(hobot::Key::W)){
-      HT_LOG_INFO("W");
+    srand(0);
+    const float SQ_WIDTH = 256.0f;
+    const float CL_WIDTH = 2.0f/SQ_WIDTH;
+    for (float i = -SQ_WIDTH; i < SQ_WIDTH/2.0f; i++){
+      for (float j = -SQ_WIDTH; j < SQ_WIDTH/2.0f; j++){
+        renderer.Quad({2.0f*i/SQ_WIDTH+CL_WIDTH/2.0f, 2.0f*j/SQ_WIDTH+CL_WIDTH/2}, {CL_WIDTH, CL_WIDTH}, {rand() % 100 / 120.0f, 0, rand() % 100 / 120.0f, 1});
+      }
     }
-    if (_pWindow->IsKeyPressed(hobot::Key::SEMICOLON) && _pWindow->IsKeyPressed(hobot::Key::LSHIFT)){
-      HT_LOG_INFO(":");
-    }
-
-    //Mouse
-    HT_LOG_INFO(_pWindow->MousePos());
-    if (_pWindow->IsMButtonPressed(hobot::MButton::LEFT)){
-      HT_LOG_INFO("MButton::LEFT");
-    }
+    //TODO: why so little FPS?
 
     renderer.Render();
     _pWindow->PollEvents();
