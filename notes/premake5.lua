@@ -2,9 +2,10 @@ workspace "notes"
 architecture "x64"
 configurations
 {
-  "Debug"
+  "Debug",
+  "Release"
 }
-targetdir("../build/bin/")
+targetdir("../build/%{cfg.buildcfg}/bin/")
 objdir("../build/bin-int/")
 cppdialect "C++23"
 
@@ -16,7 +17,7 @@ project "notes"
   staticruntime "On"
 
   absCompileTimeRes = path.getabsolute("res/")
-  relRunTimeRes = path.getrelative("../build/bin/", "../build/res/") -- Relative to binary
+  relRunTimeRes = path.getrelative("../build/%{cfg.buildcfg}/bin/", "../build/%{cfg.buildcfg}/res/") -- Relative to binary
 
   files
   {
@@ -29,7 +30,7 @@ project "notes"
   }
 
   postbuildcommands{
-    "{COPYDIR} \"" .. absCompileTimeRes .. "\" \"" .. "../build/" .. "\""
+    "{COPYDIR} \"" .. absCompileTimeRes .. "\" \"" .. "../build/%{cfg.buildcfg}/" .. "\""
   }
 
   links
@@ -67,5 +68,6 @@ project "notes"
 
   filter "configurations:Release"
     runtime "Release"
-    optimize "on"
+    optimize "full"
+    linktimeoptimization "on"
     defines "_HOBOT_RELEASE"
