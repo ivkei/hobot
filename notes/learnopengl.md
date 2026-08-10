@@ -575,12 +575,21 @@ GLCall(glClearTexImage(_id, 0, GL_RGBA, GL_FLOAT, &color));
 ```
 
 ### Mipmaps
-- Using high resolution textures on small objects is just a waste of resources for one thing
-- and OpenGL has difficulties properly choosing a color for 1 fragment that spans multiple texels.
-- Thats where `Mipmaps` come in, its an array of textures with each subsequent one twice as small as the previous.
+- Using high resolution textures on small objects is just a waste of resources
+  for one thing (bandwidth over storage, OpenGL fetches the right mipmap level,
+    not the whole "4K-FULL-HD-SUPER-PRO-MAX" texture)
+- and OpenGL has difficulties properly choosing a color for 1 fragment that
+  spans multiple texels DYNAMICALLY! (with mipmaps, it predetermines the texels
+  once, not dynamically, thus allowing for lack of shimmering)
+    * THIS IS NONSENSE! (TODO: test if its right)
+- Thats where `Mipmaps` come in, its an array of textures with each subsequent
+  one twice as small as the previous.
 - Smaller ones are used on objects far away from the camera.
-- OpenGL allows to do it with one call to `glGenerateMipmap(target)`;
-- Since smaller mipmap layers can still generate sharp edges and artifacts (mipmaps dont solve the texture filtering problem),
+- OpenGL allows to do it with one call to `glGenerateMipmap(target)`; (Not like
+  Vulkan)
+- Since smaller mipmap layers can still generate sharp edges and artifacts
+  (when themselves resized and sampled from) (mipmaps dont solve the texture
+  filtering problem),
 - it is possible to set texture filtering for them.
   * Note that GL_LINEAR and GL_NEAREST will ignore mipmaps.
 - So the options are:
@@ -593,4 +602,8 @@ GLCall(glClearTexImage(_id, 0, GL_RGBA, GL_FLOAT, &color));
     nearest neighbor interpolation.
   * GL_LINEAR_MIPMAP_LINEAR - linearly interpolate between 2 mipmaps and their
     created level.
-TODO: make a demo to see how it looks
+  TODO: make a demo to see how it looks
+
+### Loading
+* Requires a library because of a million of different formats and compression levels.
+  - Ex: stb_image.h

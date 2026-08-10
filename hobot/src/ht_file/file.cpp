@@ -48,5 +48,28 @@ std::string ReadRel(std::string relPath){
   return res.str();
 }
 
+//Image impl
+struct Image::Impl{
+  unsigned char* pData;
+};
+
+Image::Image()
+  : _pImpl(std::make_unique<Impl>(nullptr)){
+  //TODO: implement
+}
+
+Image::~Image(){
+  if (_pImpl->pData){
+  }
+}
+
+Image::Image(Image&&){
+}
+
+Image& Image::operator=(Image&&){
+}
+
+void* Image::RawData() const{
+}
 
 }

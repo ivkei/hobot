@@ -16,4 +16,20 @@ std::filesystem::path HOBOT_API GetExecDir();
 //Takes in path relative to the exec's dir
 std::string HOBOT_API ReadRel(std::string relPath);
 
+class Image{
+private:
+  struct Impl;
+  std::unique_ptr<Impl> _pImpl;
+public:
+  Image();
+  ~Image();
+
+  Image(Image&&);
+  Image& operator=(Image&&);
+  Image(const Image&) = delete;
+  Image& operator=(const Image&) = delete;
+
+  void* RawData() const;
+};
+
 }
