@@ -2,6 +2,8 @@
 
 #include"ht_file/file.h"
 
+#include"stb_image.h"
+
 namespace hobot{
 
 #ifdef _HOBOT_WINDOWS
@@ -53,23 +55,34 @@ struct Image::Impl{
   unsigned char* pData;
 };
 
-Image::Image()
-  : _pImpl(std::make_unique<Impl>(nullptr)){
-  //TODO: implement
+Image::Image(std::string relPath)
+  : _pImpl(nullptr){
+
+  int width, height, nrChannels;
+  _pImpl->pData = stbi_load(relPath.c_str(), &width, &height, &nrChannels, 0);
+  //Last 0 probably just says that desired_channels are whatever in the image
 }
 
 Image::~Image(){
   if (_pImpl->pData){
+    stbi_image_free(_pImpl->pData);
   }
 }
 
-Image::Image(Image&&){
+Image::Image(Image&& rhs)
+  : _pImpl(nullptr){
+  _pImpl->pData = rhs._pImpl->pData;
+  rhs._pImpl->pData = nullptr;
 }
 
-Image& Image::operator=(Image&&){
+Image& Image::operator=(Image&& rhs){
+  _pImpl->pData = rhs._pImpl->pData;
+  rhs._pImpl->pData = nullptr;
+  return *this;
 }
 
 void* Image::RawData() const{
+  return _pImpl->pData;
 }
 
 }

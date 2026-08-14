@@ -304,6 +304,7 @@ void Renderer::Quad(hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2, hobot:
   vbo.emplace_back(Vertex{pos3, col3});
 
   //Ibo
+  //TODO: int macro
   if (orderedMode){
     int orderedIndices[4] = {0, 1, 2, 3};
     ifOrder(0, 1, 2, 3)

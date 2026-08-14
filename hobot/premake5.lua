@@ -1,5 +1,6 @@
 include "vendors/glew-2.2.0"
 include "vendors/glfw-3.4"
+include "vendors/stb_image"
 
 project  "hobot"
   language "C++"
@@ -14,7 +15,7 @@ project  "hobot"
   pchsource "src/ht_pch/pch.cpp"
 
   files{
-    "src/**.cpp",
+    "src/**.cpp"
   }
 
   defines{
@@ -25,13 +26,15 @@ project  "hobot"
 
   links{
     "glfw",
-    "glew"
+    "glew",
+    "stb_image",
   }
 
   includedirs{
     "vendors/glfw-3.4/include",
     "vendors/glew-2.2.0/include",
     "vendors/glm-1.0.1",
+    "vendors/stb_image",
     "src",
   }
 

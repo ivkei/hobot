@@ -607,3 +607,5 @@ GLCall(glClearTexImage(_id, 0, GL_RGBA, GL_FLOAT, &color));
 ### Loading
 * Requires a library because of a million of different formats and compression levels.
   - Ex: stb_image.h
+    * Can have a C++ file with `STB_IMAGE_IMPLEMENTATION` defined (will defined functions)
+      - Reduces the number of symbols (#ifdef STB_IMAGE_IMPLEMENTATION only source #else only lib #endif)

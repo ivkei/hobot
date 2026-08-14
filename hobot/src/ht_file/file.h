@@ -21,7 +21,8 @@ private:
   struct Impl;
   std::unique_ptr<Impl> _pImpl;
 public:
-  Image();
+  //Path is relative to executable
+  Image(std::string relPath);
   ~Image();
 
   Image(Image&&);

@@ -41,6 +41,7 @@ public:
   int MaxTextures() const; //Read-only, optimized for drawing
   int MaxImages() const; //Read and write
 
+  //TODO: into const Image& image
   void Sprite(std::string path, hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color = hobot::Vec4(1)) const;
   //Ordered mode is same as for quad
   //Tex are the tex coordinates (where to sample from for each vertex):

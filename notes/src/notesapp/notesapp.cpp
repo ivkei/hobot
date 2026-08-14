@@ -63,7 +63,6 @@ void NotesApp::Run(){
       }
     }
     //TODO: why so little FPS (maybe this loop issues)?
-    //TODO: current frag shader has unnatural effect of turning blue into purple?
 
     renderer.Render();
     _pWindow->PollEvents();

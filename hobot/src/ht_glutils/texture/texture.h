@@ -5,6 +5,8 @@
 
 #include"ht_math/math.h"
 
+#include"ht_file/file.h"
+
 namespace hobot{
 
 class Texture{
@@ -14,7 +16,7 @@ private:
   unsigned int _height;
 public:
   //Path to png image
-  Texture(std::string path, bool generateMipmaps = true);
+  Texture(const Image& image, bool generateMipmaps = true);
 
   Texture(const Texture&) = delete;
   Texture& operator=(const Texture&) = delete;
