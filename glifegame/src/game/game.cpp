@@ -27,7 +27,7 @@ Game::Game(const hobot::Renderer& renderer)
 
   //Populate
   _renderer.ClearTexture("1", {0.93434f, 0.912412f, 0.123422f, 1.0f});
-  renderer.Shaders(RES_DIR"shaders/vert.glsl", RES_DIR"shaders/populateFrag.glsl", true, true, true);
+  renderer.Shaders(RES_DIR"shaders/vert.glsl", RES_DIR"shaders/populateFrag.glsl", true, true, hobot::Renderer::Pipeline::Fixed);
   renderer.BindTexture("1", 0, true);
   renderer.Uniform("uTexture", 0);
   _renderer.Uniform("uWidth", WIDTH);
@@ -41,7 +41,7 @@ Game::Game(const hobot::Renderer& renderer)
   renderer.Render();
 
   //Shaders
-  renderer.Shaders(RES_DIR"shaders/vert.glsl", RES_DIR"shaders/mainFrag.glsl", true, true, true);
+  renderer.Shaders(RES_DIR"shaders/vert.glsl", RES_DIR"shaders/mainFrag.glsl", true, true, hobot::Renderer::Pipeline::Fixed);
 
   //Set uniforms
   _renderer.Uniform("uTextureBack", 0);

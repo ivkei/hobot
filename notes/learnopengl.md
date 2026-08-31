@@ -586,7 +586,7 @@ GLCall(glClearTexImage(_id, 0, GL_RGBA, GL_FLOAT, &color));
   one twice as small as the previous.
 - Smaller ones are used on objects far away from the camera.
 - OpenGL allows to do it with one call to `glGenerateMipmap(target)`; (Not like
-  Vulkan)
+  Vulkan) (uses GL_LINEAR to downscale)
 - Since smaller mipmap layers can still generate sharp edges and artifacts
   (when themselves resized and sampled from) (mipmaps dont solve the texture
   filtering problem),
