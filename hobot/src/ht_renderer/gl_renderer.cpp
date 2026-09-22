@@ -497,11 +497,12 @@ void Renderer::SetViewport(hobot::Vec2 start, hobot::Vec2 dimensions) const{
     glDisable(GL_SCISSOR_TEST); //Otherwise clear is too slow
   } else{
     glScissor(start.x*_props.width, start.y*_props.height, dimensions.x*_props.width, dimensions.y*_props.height); //Prevents blending into other viewports
+    //Also clearing other viewports is prevented
     glEnable(GL_SCISSOR_TEST);
   }
 }
 
-void Renderer::_SetWindowProps(WindowProps props){
+void Renderer::_SetWindowProps(const WindowProps& props){
   _props = std::move(props);
 }
 

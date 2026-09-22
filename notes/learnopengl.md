@@ -72,6 +72,8 @@ glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //Core profile
 
 //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); //For Mac
+//Apple never made a fixed-function pipeline driver
+//This just completely forbids use of deprecated features
 ```
 
 ## glViewport
@@ -116,7 +118,7 @@ auto processInput = [](GLFWwindow* pWindow){
 * Options are: `GL_COLOR_BUFFER_BIT`, `GL_DEPTH_BUFFER_BIT`, and `GL_STENCIL_BUFFER_BIT`.
 * `glClearColor(r, g, b, a)` specifies clear color...
 * Call each frame (just wanted to use the new terminology)
-* glClear is a state-using function, glClearColor is a state-setting functin.
+* glClear is a state-using function, glClearColor is a state-setting function.
 
 ## Rendering pipeline and Shaders
 * Large portion of what OpenGL does is projecting 3D graphics onto 2D screen.
@@ -158,7 +160,7 @@ auto processInput = [](GLFWwindow* pWindow){
 * Also Tessellation and Transform Feedback Loop stages (later).
 * Mostly a vertex and a fragment shaders are used (required by OpenGL).
 
-## Vertex input
+## Vertex input TODO: Stopped here
 * To start drawing - give OpenGL input vertex data.
 * OpenGL uses NDC (Normalized Device Coordinates), all 3 axes range between -1 and 1 for positioning
   - NDC has to be used after vertex shader (otherwise clipping)

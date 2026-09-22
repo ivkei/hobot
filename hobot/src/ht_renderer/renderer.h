@@ -64,7 +64,7 @@ public:
   //Both start and dimensions are between 0 and 1, thats because its independent of window's size
   void SetViewport(hobot::Vec2 start, hobot::Vec2 dimensions) const; //Setter yet const as its needed to be called from const references
   hobot::Vec4 GetViewport() const;
-  void _SetWindowProps(WindowProps props);
+  void _SetWindowProps(const WindowProps& props);
 
   //===Raw pipeline===
   //Custom pipeline

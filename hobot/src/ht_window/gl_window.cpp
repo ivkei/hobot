@@ -271,7 +271,7 @@ void Window::PollEvents(){
   }
 }
 
-void Window::SetProps(WindowProps props){
+void Window::SetProps(const WindowProps& props){
   this->_props = props;
   glfwSetWindowSize(_pImpl->pWindow, props.width, props.height);
   glfwSetWindowTitle(_pImpl->pWindow, props.name.c_str());
@@ -296,7 +296,7 @@ bool Window::IsKeyPressed(Key key){
 Vec2 Window::MousePos(){
   double x;
   double y;
-  glfwGetCursorPos(_pImpl->pWindow, &x, &y);
+  glfwGetCursorPos(_pImpl->pWindow, &x, &y); //As fast as just caching callback
   return Vec2(x, y);
 }
 

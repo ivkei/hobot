@@ -11,4 +11,4 @@ HOBOT_ENTRY_POINT
 //TODO: add texture support to hobot (sprites?)
 //TODO: Stopped after mipmaps
 //TODO: watch sparky/Hazel series
-//TODO: add an app to convert images to ascii?
+//TODO: add an app to convert images to ascii? (Perhaps after compute shader support)

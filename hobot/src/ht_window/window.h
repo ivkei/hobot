@@ -53,7 +53,7 @@ public:
   void SwapBuffers();
   void PollEvents();
 
-  void SetProps(WindowProps props);
+  void SetProps(const WindowProps& props);
   void SetVSync(bool enabled);
 
 };
