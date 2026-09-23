@@ -160,7 +160,7 @@ auto processInput = [](GLFWwindow* pWindow){
 * Also Tessellation and Transform Feedback Loop stages (later).
 * Mostly a vertex and a fragment shaders are used (required by OpenGL).
 
-## Vertex input TODO: Stopped here
+## Vertex input
 * To start drawing - give OpenGL input vertex data.
 * OpenGL uses NDC (Normalized Device Coordinates), all 3 axes range between -1 and 1 for positioning
   - NDC has to be used after vertex shader (otherwise clipping)
@@ -583,7 +583,6 @@ GLCall(glClearTexImage(_id, 0, GL_RGBA, GL_FLOAT, &color));
 - and OpenGL has difficulties properly choosing a color for 1 fragment that
   spans multiple texels DYNAMICALLY! (with mipmaps, it predetermines the texels
   once, not dynamically, thus allowing for lack of shimmering)
-    * THIS IS NONSENSE! (TODO: test if its right)
 - Thats where `Mipmaps` come in, its an array of textures with each subsequent
   one twice as small as the previous.
 - Smaller ones are used on objects far away from the camera.

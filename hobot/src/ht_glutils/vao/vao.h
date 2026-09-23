@@ -16,6 +16,7 @@ public:
 
   void AddLayout(const VBOLayout& layout);
 
+  //1 or more elements specified in layout
   bool IsValid() const { return _valid; }
 
   void Bind() const;
