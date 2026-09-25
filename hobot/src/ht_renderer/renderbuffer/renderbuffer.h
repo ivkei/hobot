@@ -12,17 +12,21 @@ private:
   struct Impl;
   std::unique_ptr<Impl> _pImpl;
 public:
-  enum Type{
+  enum BufferType{
     Static,
     Dynamic
   };
+  enum DataType{
+    Vertex,
+    Index
+  };
 
-  RenderBuffer(Type type = Type::Static);
+  RenderBuffer(BufferType type = BufferType::Static);
   ~RenderBuffer();
   
   //Size in bytes
-  void Data(const void* pData, int size);
-  void IndexData(const unsigned int* pData, int size);
+  //Replaces old data
+  void Data(const void* pData, int size, DataType type);
   void SetLayout(const std::vector<LayoutElement>& layout);
 
   void Bind() const;

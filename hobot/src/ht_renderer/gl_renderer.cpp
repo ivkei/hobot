@@ -1,6 +1,7 @@
 #include"ht_pch/pch.h"
 
 #include"ht_renderer/renderer.h"
+#include"ht_renderer/renderbuffer/renderbuffer.h"
 
 #include"GL/glew.h"
 
@@ -30,24 +31,25 @@ struct Renderer::PImpl{
   std::vector<Vertex> fixedVbo;
   std::vector<unsigned int> fixedIbo;
   Shader fixedShader;
-  VAO fixedVao;
+
+  RenderBuffer fixedBuffer{RenderBuffer::BufferType::Dynamic};
   //Raw
   void* pRawData = nullptr;
   unsigned int rawSize = 0;
   std::vector<unsigned int> rawIbo;
+
+  //For proper automatic index handling
   unsigned int rawMaxIndex = 0; //1-indexed!
+
   Shader rawShader;
-  VAO rawVao;
-  VBOLayout rawLayout;
-  unsigned int maxRawDataSize = 0;
+
+  RenderBuffer rawBuffer{RenderBuffer::BufferType::Dynamic};
+
   //Else
-  unsigned int vboID = 0;
-  unsigned int iboID = 0;
   bool clear = false;
-  int maxVboSize = 0;
-  int maxIboSize = 0;
   bool valid = true;
   hobot::Vec4 viewport;
+
   //Textures
   std::unordered_map<std::string, Texture> textures;
   int maxTextureSlots;
@@ -57,7 +59,6 @@ struct Renderer::PImpl{
   std::unordered_map<std::string, std::pair<std::shared_ptr<Texture>, int>> spriteTextureCache; //cache textures with their lifetime counter by path
   int maxTextureSpriteCacheLifetime = 1; //How much renders it stays cached for, e.g. 1 implies that will get deleted on next render after
   Shader spriteShader;
-  VAO spriteVao;
   std::vector<SpriteVertex> spriteVbo;
   std::vector<unsigned int> spriteIbo;
   std::vector<std::shared_ptr<Texture>> sprites; //This keeps the sprites for spriteVbo, intex of texture pointer implies the sampler number (take mod)
@@ -93,6 +94,8 @@ Renderer::Renderer(WindowProps props)
 : _props(props){
   HT_LOG_INFO("Creating Renderer...");
 
+  //===GLEW initialization===
+
   //Window initializes the context
   auto err = glewInit();
   auto valid = true;
@@ -102,9 +105,10 @@ Renderer::Renderer(WindowProps props)
     return;
   }
 
-  //After glewInit
+  if (!valid) return;
+
   _pImpl = std::make_unique<PImpl>();
-  this->_pImpl->valid = valid;
+  this->_pImpl->valid = valid; //TODO: into class field (fix return before set)
 
   GLEnableAutoLogging();
 
@@ -114,37 +118,17 @@ Renderer::Renderer(WindowProps props)
   GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
   GLCall(glEnable(GL_BLEND));
 
-  //VBO and IBO
-  this->_pImpl->fixedVao.Bind();
+  //===Post-GLEW initialization===
 
-  unsigned int& vboID = _pImpl->vboID;
-  unsigned int& iboID = _pImpl->iboID;
+  //RenderBuffers
+  _pImpl->fixedBuffer.SetLayout({{Type::Float, 2}, {Type::Float, 4}});
 
-  GLCall(glGenBuffers(1, &vboID));
-  GLCall(glGenBuffers(1, &iboID));
-
-  GLCall(glBindBuffer(GL_ARRAY_BUFFER, vboID));
-  GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboID));
-
-  _pImpl->maxVboSize = 1000*sizeof(Vertex);
-  _pImpl->maxIboSize = 1000*sizeof(unsigned int);
-  GLCall(glBufferData(GL_ARRAY_BUFFER, _pImpl->maxVboSize, nullptr, GL_DYNAMIC_DRAW));
-  GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, _pImpl->maxIboSize, nullptr, GL_DYNAMIC_DRAW));
-
-  //Fixed Layout
-  VBOLayout layout;
-  layout.Push<float>(2);
-  layout.Push<float>(4);
-  this->_pImpl->fixedVao.AddLayout(layout);
-
+  //Shaders
   HT_LOG_INFO("---Current default fixed vert shader---\n", this->DefaultFixedVertShader);
   HT_LOG_INFO("---Current default fixed frag shader---\n", this->DefaultFixedFragShader);
 
   //Fixed
   this->Shaders(DefaultFixedVertShader, DefaultFixedFragShader, false, false, Pipeline::Fixed);
-
-  _pImpl->maxRawDataSize = 1000;
-  _pImpl->pRawData = malloc(_pImpl->maxRawDataSize);
 
   //Textures
   GLCall(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_pImpl->maxTextureSlots));
@@ -160,14 +144,10 @@ Renderer::Renderer(WindowProps props)
   spriteLayout.Push<float>(4); //Color
   spriteLayout.Push<float>(2); //TexCoord
   spriteLayout.Push<int>(1); //Sampler
-  _pImpl->spriteVao.AddLayout(spriteLayout);
+  //_pImpl->spriteVao.AddLayout(spriteLayout); //TODO: add sprite support
 }
 
 Renderer::~Renderer(){
-  if (this->IsValid()){
-    GLCall(glDeleteBuffers(1, &this->_pImpl->vboID));
-    GLCall(glDeleteBuffers(1, &this->_pImpl->iboID));
-  }
   if (_pImpl->pRawData){
     free(_pImpl->pRawData);
   }
@@ -176,6 +156,7 @@ Renderer::~Renderer(){
 //Buffers data every frame, but otherwise too complex
 void Renderer::Render() const{
   //Fixed
+  //TODO: refactor all this to use RenderBuffer
   const VAO& fixedVao = this->_pImpl->fixedVao;
   std::vector<Vertex>& fixedVbo = this->_pImpl->fixedVbo;
   std::vector<unsigned int>& fixedIbo = this->_pImpl->fixedIbo;
@@ -532,24 +513,13 @@ void Renderer::Raw(const void* data, unsigned int size, const std::vector<unsign
   std::memcpy(((char*)_pImpl->pRawData)+oldSize, data, size);
 }
 
-static unsigned int HobotTypeToGLType(Type type){
-  switch (type){
-    case Type::Float: return GL_FLOAT;
-    case Type::Int: return GL_INT;
-    case Type::UInt: return GL_UNSIGNED_INT;
-    default:
-      HT_LOG_ERROR("Unknown type passed to HobotTypeToGLType");
-      return GL_UNSIGNED_INT;
-  }
-}
-
 void Renderer::RawLayout(const std::vector<LayoutElement>& layout) const{
   _pImpl->rawVao.Bind();
   GLCall(glBindBuffer(GL_ARRAY_BUFFER, _pImpl->vboID));
   GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _pImpl->iboID));
   _pImpl->rawLayout.Reset();
   for (int i = 0; i < layout.size(); i++){
-    _pImpl->rawLayout.Push(HobotTypeToGLType(layout[i].type), layout[i].count, false);
+    _pImpl->rawLayout.Push(TypeToGLType(layout[i].type), layout[i].count, false);
   }
   _pImpl->rawVao.Unbind();
 }

@@ -31,6 +31,18 @@ public:
   Renderer(WindowProps props);
   ~Renderer();
 
+  //===Render (Flushing) & Clear===
+  void Render() const;
+  void Clear(hobot::Vec4 color = hobot::Vec4(0, 0, 0, 1)) const;
+
+  //===Viewport & IsValid===
+  //API initialized
+  bool IsValid() const;
+  //Both start and dimensions are between 0 and 1, thats because its independent of window's size
+  void SetViewport(hobot::Vec2 start, hobot::Vec2 dimensions) const; //Setter yet const as its needed to be called from const references
+  hobot::Vec4 GetViewport() const;
+  void _SetWindowProps(const WindowProps& props);
+
   //===Sprites & Textures===
 
   //Textures (dont bind more than allowed at once, query MaxTextures, note that indexing starts with 0)
@@ -52,19 +64,6 @@ public:
   void Sprite(std::string path, hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2, hobot::Vec2 pos3,
                                 hobot::Vec4 col0, hobot::Vec4 col1, hobot::Vec4 col2, hobot::Vec4 col3,
                                 hobot::Vec2 tex0, hobot::Vec2 tex1, hobot::Vec2 tex2, hobot::Vec2 tex3, bool orderedMode = false) const;
-
-  //===Render (Flushing) & Clear===
-
-  void Render() const;
-  void Clear(hobot::Vec4 color = hobot::Vec4(0, 0, 0, 1)) const;
-
-  //===Viewport & IsValid===
-
-  bool IsValid() const;
-  //Both start and dimensions are between 0 and 1, thats because its independent of window's size
-  void SetViewport(hobot::Vec2 start, hobot::Vec2 dimensions) const; //Setter yet const as its needed to be called from const references
-  hobot::Vec4 GetViewport() const;
-  void _SetWindowProps(const WindowProps& props);
 
   //===Raw pipeline===
   //Custom pipeline

@@ -3,6 +3,7 @@
 #include"GL/glew.h"
 
 #include"ht_glutils/debug/debug.h"
+#include"ht_glutils/type.h"
 #include"ht_logger.h"
 
 #include"ht_renderer/layoutelement.h"
@@ -17,43 +18,6 @@ namespace hobot{
     bool normalize;
   };
 
-  struct _GLType{
-    unsigned int type;
-    unsigned int size;
-  };
-
-  template<class T>
-  struct TypeTo_GLType;
-
-  template<>
-  struct TypeTo_GLType<int>{
-    static constexpr _GLType type = {GL_INT, sizeof(int)};
-  };
-  template<>
-  struct TypeTo_GLType<float>{
-    static constexpr _GLType type = {GL_FLOAT, sizeof(float)};
-  };
-  template<>
-  struct TypeTo_GLType<unsigned int>{
-    static constexpr _GLType type = {GL_UNSIGNED_INT, sizeof(unsigned int)};
-  };
-  template<>
-  struct TypeTo_GLType<char>{
-    static constexpr _GLType type = {GL_BYTE, sizeof(char)};
-  };
-
-  static _GLType GLTypeTo_GLType(unsigned int type){
-    switch (type){
-      case GL_FLOAT: return {GL_FLOAT, sizeof(float)};
-      case GL_INT: return {GL_INT, sizeof(int)};
-      case GL_UNSIGNED_INT: return {GL_UNSIGNED_INT, sizeof(unsigned int)};
-      case GL_BYTE: return {GL_BYTE, sizeof(char)};
-      default: 
-        HT_LOG_ERROR("Unknown type passed to GLTypeTo_GLType");
-        return {GL_UNSIGNED_INT, sizeof(unsigned int)};
-    }
-  }
-
   class VBOLayout final{
   private:
     std::vector<VBOLayoutElement> _elems;
@@ -65,31 +29,28 @@ namespace hobot{
 
     template<class T>
     void Push(unsigned int count, bool normalized = false){
-      _GLType type = TypeTo_GLType<T>::type;
+      unsigned int glType = TToGLType<T>::type;
 
-      unsigned int size = type.size*count;
+      unsigned int size = GLTypeToSize(glType)*count;
       _stride+=size;
-      _elems.emplace_back(VBOLayoutElement{count, size, type.type, normalized});
+      _elems.emplace_back(VBOLayoutElement{count, size, glType, normalized});
     }
 
     //Non-template version
     void Push(unsigned int glType, unsigned int count, bool normalized = false){
-      _GLType type = GLTypeTo_GLType(glType);
 
-      unsigned int size = type.size*count;
+      unsigned int size = GLTypeToSize(glType)*count;
       _stride+=size;
-      _elems.emplace_back(VBOLayoutElement{count, size, type.type, normalized});
+      _elems.emplace_back(VBOLayoutElement{count, size, glType, normalized});
     }
 
     //LayoutElement version
     void Push(const LayoutElement& element){
-      _GLType type = GLTypeTo_GLType(glType);
-      //TODO: make
-      //TODO: refactor this whole file with type.h glutil
+      unsigned int glType = TypeToGLType(element.type);
 
-      unsigned int size = type.size*count;
+      unsigned int size = element.count*GLTypeToSize(glType);
       _stride+=size;
-      _elems.emplace_back(VBOLayoutElement{count, size, type.type, normalized});
+      _elems.emplace_back(VBOLayoutElement{element.count, size, glType, false});
     }
 
     //0 by default

@@ -5,7 +5,6 @@
 #include"GL/glew.h"
 
 namespace hobot{
-  //TODO: refactor all this
   inline unsigned int TypeToGLType(Type type){
     switch (type){
       case Type::Float: return GL_FLOAT;
@@ -16,6 +15,29 @@ namespace hobot{
   }
 
   inline int GLTypeToSize(unsigned int type){
-    //TODO
+    switch (type){
+      case GL_FLOAT: return sizeof(float);
+      case GL_INT: return sizeof(int);
+
+      default:
+      case GL_UNSIGNED_INT: return sizeof(unsigned int);
+    };
   }
-};
+
+    template<class T>
+    struct TToGLType;
+
+    template<>
+    struct TToGLType<int>{
+      static constexpr unsigned int type = GL_INT;
+    };
+    template<>
+    struct TToGLType<unsigned int>{
+      static constexpr unsigned int type = GL_UNSIGNED_INT;
+    };
+    template<>
+    struct TToGLType<float>{
+      static constexpr unsigned int type = GL_FLOAT;
+    };
+
+}
