@@ -16,17 +16,14 @@ public:
     Static,
     Dynamic
   };
-  enum DataType{
-    Vertex,
-    Index
-  };
 
   RenderBuffer(BufferType type = BufferType::Static);
   ~RenderBuffer();
   
   //Size in bytes
   //Replaces old data
-  void Data(const void* pData, int size, DataType type);
+  void Vertex(const void* pData, unsigned int size);
+  void Index(const void* pData, unsigned int size);
   void SetLayout(const std::vector<LayoutElement>& layout);
 
   void Bind() const;

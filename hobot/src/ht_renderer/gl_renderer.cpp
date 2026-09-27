@@ -47,7 +47,6 @@ struct Renderer::PImpl{
 
   //Else
   bool clear = false;
-  bool valid = true;
   hobot::Vec4 viewport;
 
   //Textures
@@ -91,24 +90,20 @@ void Renderer::ClearTexture(std::string name, hobot::Vec4 color) const{
 
 //Note that theres no need for multithreadedness, window has ownership and it can be bound only to thread at a time
 Renderer::Renderer(WindowProps props)
-: _props(props){
+: _props(props), _valid(true){
   HT_LOG_INFO("Creating Renderer...");
 
   //===GLEW initialization===
 
   //Window initializes the context
   auto err = glewInit();
-  auto valid = true;
   if (err != GLEW_OK){
     HT_LOG_ERROR("Failed to init glew: ", glewGetErrorString(err));
-    valid = false;
+    _valid = false;
     return;
   }
 
-  if (!valid) return;
-
   _pImpl = std::make_unique<PImpl>();
-  this->_pImpl->valid = valid; //TODO: into class field (fix return before set)
 
   GLEnableAutoLogging();
 
@@ -155,104 +150,77 @@ Renderer::~Renderer(){
 
 //Buffers data every frame, but otherwise too complex
 void Renderer::Render() const{
-  //Fixed
-  //TODO: refactor all this to use RenderBuffer
-  const VAO& fixedVao = this->_pImpl->fixedVao;
-  std::vector<Vertex>& fixedVbo = this->_pImpl->fixedVbo;
-  std::vector<unsigned int>& fixedIbo = this->_pImpl->fixedIbo;
-  const Shader& fixedShader = this->_pImpl->fixedShader;
-  bool clear = this->_pImpl->clear;
-  int maxVboSize = this->_pImpl->maxVboSize;
-  int maxIboSize = this->_pImpl->maxIboSize;
-  //Raw
-  VAO& rawVao = _pImpl->rawVao;
-  std::vector<unsigned int>& rawIbo = _pImpl->rawIbo;
-  const Shader& rawShader = _pImpl->rawShader;
-  void*& pRawData = _pImpl->pRawData;
-  unsigned int& rawSize = _pImpl->rawSize;
-  unsigned int& rawMaxIndex = _pImpl->rawMaxIndex;
-  //Sprites
-  auto& spriteVao = _pImpl->spriteVao;
-  auto& spriteShader = _pImpl->spriteShader;
-  auto& spriteIbo = _pImpl->spriteIbo;
-  auto& spriteVbo = _pImpl->spriteVbo;
-  auto& sprites = _pImpl->sprites;
-
-  if (clear){
+  if (_pImpl->clear){
     GLCall(glClear(GL_COLOR_BUFFER_BIT));
   }
 
-  if (rawIbo.empty() && fixedIbo.empty() && spriteIbo.empty()) return;
-
-  fixedVao.Bind();
-  fixedShader.Bind();
-
-  //Buffers (buffer everything here)
-  //Single because (1) batching and (2) less binds
-  //TODO: why 1 buffer, just do one for each pipeline
-  if (maxVboSize >= (fixedVbo.size()*sizeof(Vertex) + rawSize)){
-    //Dont reallocate data if not needed
-    GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, fixedVbo.size()*sizeof(Vertex), fixedVbo.data()));
-    if (rawSize > 0 && pRawData) GLCall(glBufferSubData(GL_ARRAY_BUFFER, fixedVbo.size()*sizeof(Vertex), rawSize, pRawData));
-  }else{
-    GLCall(glBufferData(GL_ARRAY_BUFFER, fixedVbo.size()*sizeof(Vertex)+rawSize, fixedVbo.data(), GL_DYNAMIC_DRAW));
-    if (rawSize > 0 && pRawData) GLCall(glBufferSubData(GL_ARRAY_BUFFER, fixedVbo.size()*sizeof(Vertex), rawSize, pRawData));
-  }
-  if (maxIboSize >= (fixedIbo.size()+rawIbo.size())*sizeof(unsigned int)){
-    GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, fixedIbo.size()*sizeof(unsigned int), fixedIbo.data()));
-    if (rawIbo.size() > 2) GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, fixedIbo.size()*sizeof(unsigned int), rawIbo.size()*sizeof(unsigned int), rawIbo.data()));
-  }else{
-    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, (fixedIbo.size() + rawIbo.size())*sizeof(unsigned int), fixedIbo.data(), GL_DYNAMIC_DRAW));
-    if (rawIbo.size() > 2) GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, fixedIbo.size()*sizeof(unsigned int), rawIbo.size()*sizeof(unsigned int), rawIbo.data()));
-  }
+  if (_pImpl->rawIbo.empty() && _pImpl->fixedIbo.empty() && _pImpl->spriteIbo.empty()) return;
 
   //Fixed pipeline rendering
-  HT_LOG_ASSERT(fixedShader.IsValid(), "Fixed shader is invalid, please specify it with Vert and Frag");
-  if (fixedIbo.size() > 2){
-    glDrawElements(GL_TRIANGLES, fixedIbo.size(), GL_UNSIGNED_INT, NULL);
+  if (_pImpl->fixedIbo.size() > 2){
+    HT_LOG_ASSERT(_pImpl->fixedShader.IsValid(), "Fixed shader is invalid, please specify it with Vert and Frag");
+    _pImpl->fixedBuffer.Vertex(_pImpl->fixedVbo.data(), _pImpl->fixedVbo.size()*sizeof(Vertex));
+    _pImpl->fixedBuffer.Index(_pImpl->fixedIbo.data(), _pImpl->fixedIbo.size()*sizeof(unsigned int));
+
+    _pImpl->fixedBuffer.Bind();
+    _pImpl->fixedShader.Bind();
+
+    glDrawElements(GL_TRIANGLES, _pImpl->fixedIbo.size(), GL_UNSIGNED_INT, NULL);
+
+    _pImpl->fixedBuffer.Unbind();
+    _pImpl->fixedShader.Unbind();
+
+    //Next batch prep
+    _pImpl->fixedVbo.clear();
+    _pImpl->fixedIbo.clear();
   }
+
   //Raw draw
-  if (rawIbo.size() > 2 && pRawData){
-    HT_LOG_ASSERT(rawShader.IsValid(), "Raw shader is invalid, please specify it with Vert and Frag");
-    HT_LOG_ASSERT(rawVao.IsValid(), "Raw layout wasnt specified");
-    rawShader.Bind();
-    rawVao.Bind();
+  if (_pImpl->rawIbo.size() > 2 && _pImpl->pRawData){
+    HT_LOG_ASSERT(_pImpl->rawShader.IsValid(), "Raw shader is invalid, please specify it with Vert and Frag");
+    _pImpl->rawBuffer.Vertex(_pImpl->pRawData, _pImpl->rawSize);
+    _pImpl->rawBuffer.Index(_pImpl->rawIbo.data(), _pImpl->rawIbo.size()*sizeof(unsigned int));
+
+    _pImpl->rawBuffer.Bind(); //TODO: fix unbinding after calling vertex and index
+    _pImpl->rawShader.Bind();
+
+    //TODO
     _pImpl->rawLayout.SetOffset(fixedVbo.size()*sizeof(Vertex)); //offset within buffer
     rawVao.AddLayout(_pImpl->rawLayout);
 
-    glDrawElements(GL_TRIANGLES, rawIbo.size(), GL_UNSIGNED_INT, (void*)(fixedIbo.size()*sizeof(unsigned int)));
+    glDrawElements(GL_TRIANGLES, _pImpl->rawIbo.size(), GL_UNSIGNED_INT, (void*)(_pImpl->fixedIbo.size()*sizeof(unsigned int)));
 
-    //Next batch preparation
-    rawSize = 0;
-    rawIbo.clear();
-    rawMaxIndex = 0;
+    _pImpl->rawBuffer.Unbind();
+    _pImpl->rawShader.Unbind();
+
+    //Next batch prep
+    _pImpl->rawSize = 0;
+    _pImpl->rawIbo.clear();
+    _pImpl->rawMaxIndex = 0;
   }
-  //Sprites (in batches of whatever number allowed)
+  /*Sprites (in batches of whatever number allowed)
   if (spriteIbo.size()){
     spriteShader.Bind();
     spriteVao.Bind();
     //TODO
   }
+  */
 
   //Prepare for the next batch
   this->_pImpl->clear = false;
   GLCall(glClearColor(0, 0, 0, 1));
 
-  maxVboSize = std::max(maxVboSize, static_cast<int>(fixedVbo.size()*sizeof(Vertex) + rawSize));
-  maxIboSize = std::max(maxIboSize, static_cast<int>((fixedIbo.size()+rawIbo.size())*sizeof(unsigned int)));
-
-  fixedVbo.clear();
-  fixedIbo.clear();
-
-  //Sprites
-  spriteIbo.clear();
-  spriteVbo.clear();
+  /*Sprites
+  _pImpl->spriteIbo.clear();
+  _pImpl->spriteVbo.clear();
   sprites.clear();
   if (_pImpl->spriteTextureCache.size()){
     for (auto&& i : _pImpl->spriteTextureCache){
       if (i.second.second-- <= 0) _pImpl->spriteTextureCache.erase(i.first);
     }
   }
+
+  */
 }
 
 //pos = bottom-left vertex pos, dimensions = width, height
@@ -264,7 +232,7 @@ static float AtFor2Pts(float x, hobot::Vec2 p1, hobot::Vec2 p2){
 }
 //If 2 points divide the remaining 2 points so that they are on opposite sides of a diagonal, those 2 endpts can be used to draw 2 triangles no matter what order
 //This orders the indices to disregard invalid order of input
-#define ifOrder(endpt1, endpt2, other1, other2)\
+#define IfOrder(endpt1, endpt2, other1, other2)\
 if ((pos##other1.y > AtFor2Pts(pos##other1.x, pos##endpt1, pos##endpt2) && pos##other2.y < AtFor2Pts(pos##other2.x, pos##endpt1, pos##endpt2)) ||\
     (pos##other1.y < AtFor2Pts(pos##other1.x, pos##endpt1, pos##endpt2) && pos##other2.y > AtFor2Pts(pos##other2.x, pos##endpt1, pos##endpt2))){\
   orderedIndices[0] = other1;\
@@ -272,6 +240,31 @@ if ((pos##other1.y > AtFor2Pts(pos##other1.x, pos##endpt1, pos##endpt2) && pos##
   orderedIndices[2] = endpt2;\
   orderedIndices[3] = other2;\
 }
+
+#define PushIboQuad()\
+  if (orderedMode){\
+    int orderedIndices[4] = {0, 1, 2, 3};\
+    IfOrder(0, 1, 2, 3)\
+    else IfOrder(0, 2, 1, 3)\
+    else IfOrder(1, 2, 0, 3)\
+    else IfOrder(0, 3, 1, 2)\
+    else IfOrder(1, 3, 0, 2)\
+    else IfOrder(3, 2, 0, 1);\
+    ibo.push_back(offset+orderedIndices[0]);\
+    ibo.push_back(offset+orderedIndices[1]);\
+    ibo.push_back(offset+orderedIndices[2]);\
+    ibo.push_back(offset+orderedIndices[1]);\
+    ibo.push_back(offset+orderedIndices[2]);\
+    ibo.push_back(offset+orderedIndices[3]);\
+  } else{\
+    ibo.push_back(offset+0);\
+    ibo.push_back(offset+1);\
+    ibo.push_back(offset+2);\
+    ibo.push_back(offset+1);\
+    ibo.push_back(offset+2);\
+    ibo.push_back(offset+3);\
+  }
+
 void Renderer::Quad(hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2, hobot::Vec2 pos3,
                     hobot::Vec4 col0, hobot::Vec4 col1, hobot::Vec4 col2, hobot::Vec4 col3, bool orderedMode) const{
   auto& vbo = _pImpl->fixedVbo;
@@ -285,30 +278,7 @@ void Renderer::Quad(hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2, hobot:
   vbo.emplace_back(Vertex{pos3, col3});
 
   //Ibo
-  //TODO: int macro
-  if (orderedMode){
-    int orderedIndices[4] = {0, 1, 2, 3};
-    ifOrder(0, 1, 2, 3)
-    else ifOrder(0, 2, 1, 3)
-    else ifOrder(1, 2, 0, 3)
-    else ifOrder(0, 3, 1, 2)
-    else ifOrder(1, 3, 0, 2)
-    else ifOrder(3, 2, 0, 1);
-
-    ibo.push_back(offset+orderedIndices[0]);
-    ibo.push_back(offset+orderedIndices[1]);
-    ibo.push_back(offset+orderedIndices[2]);
-    ibo.push_back(offset+orderedIndices[1]);
-    ibo.push_back(offset+orderedIndices[2]);
-    ibo.push_back(offset+orderedIndices[3]);
-  } else{
-    ibo.push_back(offset+0);
-    ibo.push_back(offset+1);
-    ibo.push_back(offset+2);
-    ibo.push_back(offset+1);
-    ibo.push_back(offset+2);
-    ibo.push_back(offset+3);
-  }
+  PushIboQuad();
 }
 
 //pos = bottom-left vertex pos, dimensions = base width, height, triangle = right
@@ -461,7 +431,7 @@ void Renderer::Clear(hobot::Vec4 color) const{
 }
 
 bool Renderer::IsValid() const{
-  return this->_pImpl->valid;
+  return _valid;
 }
 
 void Renderer::SetViewport(hobot::Vec2 start, hobot::Vec2 dimensions) const{
@@ -493,7 +463,7 @@ hobot::Vec4 Renderer::GetViewport() const{
 
 //Custom pipeline
 void Renderer::Raw(const void* data, unsigned int size, const std::vector<unsigned int>& indices) const{
-  //Raw IBO
+  /*Raw IBO
   unsigned int& maxIndex = _pImpl->rawMaxIndex;
   unsigned int newMaxIndex = maxIndex;
 
@@ -511,9 +481,11 @@ void Renderer::Raw(const void* data, unsigned int size, const std::vector<unsign
     _pImpl->maxRawDataSize = _pImpl->rawSize;
   }
   std::memcpy(((char*)_pImpl->pRawData)+oldSize, data, size);
+  */
 }
 
 void Renderer::RawLayout(const std::vector<LayoutElement>& layout) const{
+  /*
   _pImpl->rawVao.Bind();
   GLCall(glBindBuffer(GL_ARRAY_BUFFER, _pImpl->vboID));
   GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _pImpl->iboID));
@@ -522,6 +494,7 @@ void Renderer::RawLayout(const std::vector<LayoutElement>& layout) const{
     _pImpl->rawLayout.Push(TypeToGLType(layout[i].type), layout[i].count, false);
   }
   _pImpl->rawVao.Unbind();
+  */
 }
 
 void Renderer::SetWireframe(bool enabled){
@@ -561,29 +534,7 @@ void Renderer::Sprite(std::string path, hobot::Vec2 pos0, hobot::Vec2 pos1, hobo
   _pImpl->sprites.emplace_back(_pImpl->spriteTextureCache[path].first);
 
   //Ibo
-  if (orderedMode){
-    int orderedIndices[4] = {0, 1, 2, 3};
-    ifOrder(0, 1, 2, 3)
-    else ifOrder(0, 2, 1, 3)
-    else ifOrder(1, 2, 0, 3)
-    else ifOrder(0, 3, 1, 2)
-    else ifOrder(1, 3, 0, 2)
-    else ifOrder(3, 2, 0, 1);
-
-    ibo.push_back(offset+orderedIndices[0]);
-    ibo.push_back(offset+orderedIndices[1]);
-    ibo.push_back(offset+orderedIndices[2]);
-    ibo.push_back(offset+orderedIndices[1]);
-    ibo.push_back(offset+orderedIndices[2]);
-    ibo.push_back(offset+orderedIndices[3]);
-  } else{
-    ibo.push_back(offset+0);
-    ibo.push_back(offset+1);
-    ibo.push_back(offset+2);
-    ibo.push_back(offset+1);
-    ibo.push_back(offset+2);
-    ibo.push_back(offset+3);
-  }
+  PushIboQuad();
 }
 
 }

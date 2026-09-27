@@ -52,29 +52,23 @@ RenderBuffer::~RenderBuffer(){
   this->Unbind();
 }
 
-static unsigned int DataTypeToGLType(RenderBuffer::DataType type){
-  switch (type){
-    case RenderBuffer::DataType::Vertex: return GL_ARRAY_BUFFER;
-    case RenderBuffer::DataType::Index:
-    default: return GL_ELEMENT_ARRAY_BUFFER;
-  };
-}
-
 //Size in bytes
-void RenderBuffer::Data(const void* pData, int size, RenderBuffer::DataType type){
-  _pImpl->vao.Bind();
-
-  unsigned int dataType = DataTypeToGLType(type);
-
-  if (size > _pImpl->maxVboSize){
-    GLCall(glBufferData(dataType, size, pData, _pImpl->bufferType));
-    _pImpl->maxVboSize = size;
-  }
-  else{
-    GLCall(glBufferSubData(dataType, 0, size, pData));
-  }
-
+#define Data(type, max)\
+  _pImpl->vao.Bind();\
+  if (size > _pImpl->max){\
+    GLCall(glBufferData(type, size, pData, _pImpl->bufferType));\
+    _pImpl->max = size;\
+  }\
+  else{\
+    GLCall(glBufferSubData(type, 0, size, pData));\
+  }\
   _pImpl->vao.Unbind();
+
+void RenderBuffer::Vertex(const void* pData, unsigned int size){
+  Data(GL_ARRAY_BUFFER, maxVboSize);
+}
+void RenderBuffer::Index(const void* pData, unsigned int size){
+  Data(GL_ELEMENT_ARRAY_BUFFER, maxIboSize);
 }
 
 void RenderBuffer::SetLayout(const std::vector<LayoutElement>& layout){

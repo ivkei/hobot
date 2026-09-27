@@ -22,6 +22,8 @@ private:
   struct PImpl;
   std::unique_ptr<PImpl> _pImpl;
   WindowProps _props; //Useful to have here
+
+  bool _valid;
 public:
   Renderer(Renderer&) = delete;
   Renderer(Renderer&&) = delete;
