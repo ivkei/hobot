@@ -133,7 +133,6 @@ public:
   //pos = center of the circumcircle coordinates
   void Reg(hobot::Vec2 pos, float r, int vertices = 30, hobot::Vec4 color = hobot::Vec4(1), float rotation = 0) const;
   void Reg(hobot::Vec2 pos, float r, int vertices, hobot::Vec4 centerColor, hobot::Vec4 circumferenceColor, float rotation = 0) const;
-  //TODO: pallete version?
 
   ///===Utils===
   void SetWireframe(bool enabled);

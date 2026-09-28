@@ -22,9 +22,10 @@ public:
   
   //Size in bytes
   //Replaces old data
+  //Note that binds and doesnt unbind, since would like to prevent unexpected unbinding
   void Vertex(const void* pData, unsigned int size);
   void Index(const void* pData, unsigned int size);
-  void SetLayout(const std::vector<LayoutElement>& layout);
+  void SetLayout(const std::vector<LayoutElement>& layout, unsigned int offset = 0);
 
   void Bind() const;
   void Unbind() const;

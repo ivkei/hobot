@@ -62,7 +62,6 @@ RenderBuffer::~RenderBuffer(){
   else{\
     GLCall(glBufferSubData(type, 0, size, pData));\
   }\
-  _pImpl->vao.Unbind();
 
 void RenderBuffer::Vertex(const void* pData, unsigned int size){
   Data(GL_ARRAY_BUFFER, maxVboSize);
@@ -71,7 +70,7 @@ void RenderBuffer::Index(const void* pData, unsigned int size){
   Data(GL_ELEMENT_ARRAY_BUFFER, maxIboSize);
 }
 
-void RenderBuffer::SetLayout(const std::vector<LayoutElement>& layout){
+void RenderBuffer::SetLayout(const std::vector<LayoutElement>& layout, unsigned int offset){
   _pImpl->vao.Bind();
 
   VBOLayout vboLayout;
@@ -80,9 +79,9 @@ void RenderBuffer::SetLayout(const std::vector<LayoutElement>& layout){
     vboLayout.Push(i);
   }
 
-  _pImpl->vao.AddLayout(vboLayout);
+  vboLayout.SetOffset(offset);
 
-  _pImpl->vao.Unbind();
+  _pImpl->vao.AddLayout(vboLayout);
 }
 
 void RenderBuffer::Bind() const{

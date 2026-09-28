@@ -38,6 +38,8 @@ struct Renderer::PImpl{
   unsigned int rawSize = 0;
   std::vector<unsigned int> rawIbo;
 
+  std::vector<LayoutElement> rawLayout;
+
   //For proper automatic index handling
   unsigned int rawMaxIndex = 0; //1-indexed!
 
@@ -181,14 +183,12 @@ void Renderer::Render() const{
     _pImpl->rawBuffer.Vertex(_pImpl->pRawData, _pImpl->rawSize);
     _pImpl->rawBuffer.Index(_pImpl->rawIbo.data(), _pImpl->rawIbo.size()*sizeof(unsigned int));
 
-    _pImpl->rawBuffer.Bind(); //TODO: fix unbinding after calling vertex and index
+    _pImpl->rawBuffer.Bind();
     _pImpl->rawShader.Bind();
 
-    //TODO
-    _pImpl->rawLayout.SetOffset(fixedVbo.size()*sizeof(Vertex)); //offset within buffer
-    rawVao.AddLayout(_pImpl->rawLayout);
+    _pImpl->rawBuffer.SetLayout(_pImpl->rawLayout);
 
-    glDrawElements(GL_TRIANGLES, _pImpl->rawIbo.size(), GL_UNSIGNED_INT, (void*)(_pImpl->fixedIbo.size()*sizeof(unsigned int)));
+    glDrawElements(GL_TRIANGLES, _pImpl->rawIbo.size(), GL_UNSIGNED_INT, NULL);
 
     _pImpl->rawBuffer.Unbind();
     _pImpl->rawShader.Unbind();
@@ -485,16 +485,16 @@ void Renderer::Raw(const void* data, unsigned int size, const std::vector<unsign
 }
 
 void Renderer::RawLayout(const std::vector<LayoutElement>& layout) const{
-  /*
-  _pImpl->rawVao.Bind();
+  _pImpl->rawBuffer.Bind();
+
   GLCall(glBindBuffer(GL_ARRAY_BUFFER, _pImpl->vboID));
   GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _pImpl->iboID));
   _pImpl->rawLayout.Reset();
   for (int i = 0; i < layout.size(); i++){
     _pImpl->rawLayout.Push(TypeToGLType(layout[i].type), layout[i].count, false);
   }
-  _pImpl->rawVao.Unbind();
-  */
+
+  _pImpl->rawBuffer.Unbind();
 }
 
 void Renderer::SetWireframe(bool enabled){
