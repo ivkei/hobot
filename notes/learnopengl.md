@@ -583,6 +583,7 @@ GLCall(glClearTexImage(_id, 0, GL_RGBA, GL_FLOAT, &color));
 - and OpenGL has difficulties properly choosing a color for 1 fragment that
   spans multiple texels DYNAMICALLY! (with mipmaps, it predetermines the texels
   once, not dynamically, thus allowing for lack of shimmering)
+  (NONSENSE!)
 - Thats where `Mipmaps` come in, its an array of textures with each subsequent
   one twice as small as the previous.
 - Smaller ones are used on objects far away from the camera.

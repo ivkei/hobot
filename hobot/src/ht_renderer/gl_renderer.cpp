@@ -223,6 +223,10 @@ void Renderer::Render() const{
   */
 }
 
+void Renderer::Submit(const std::vector<VertexData>& data){
+  //TODO: through renderbuffers or glMapBuffer?
+}
+
 //pos = bottom-left vertex pos, dimensions = width, height
 void Renderer::Quad(hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color) const{
   this->Quad(pos, {pos.x+dimensions.x, pos.y}, {pos.x, pos.y+dimensions.y}, {pos.x+dimensions.x, pos.y+dimensions.y}, color, color, color, color, false);
