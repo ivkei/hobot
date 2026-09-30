@@ -261,7 +261,10 @@ using Vec4 = Vec<4>;
 //Column-major!
 template<int N, class T = TMath>
 struct Mat{
-  T data[N*N];
+  union{
+    T data[N*N];
+    Vec<N, T> columns[N];
+  };
 
   constexpr Mat<N, T>(){
     for (int i = 0; i < N*N; i++){
@@ -296,11 +299,11 @@ struct Mat{
 
   //0-indexed
   constexpr Vec<N, T>& operator[](int n){
-    return *reinterpret_cast<Vec<N, T>*>((data+(n*N)));
+    return columns[n];
   }
 
   constexpr const Vec<N, T>& operator[](int n) const{
-    return *reinterpret_cast<const Vec<N, T>*>((data+(n*N)));
+    return columns[n];
   }
 
   constexpr friend Vec<N, T> operator*(const Mat<N, T>& lhs, const Vec<N, T>& rhs){

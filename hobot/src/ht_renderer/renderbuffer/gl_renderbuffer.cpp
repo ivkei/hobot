@@ -3,6 +3,9 @@
 #include"ht_glutils/debug/debug.h"
 #include"ht_glutils/vao/vao.h"
 
+#include<memory>
+#include<string.h>
+
 namespace hobot{
 
 struct RenderBuffer::Impl{
@@ -13,6 +16,13 @@ struct RenderBuffer::Impl{
   unsigned int maxIboSize;
 
   unsigned int bufferType;
+
+  unsigned int offset; //In bytes
+
+  void* pData;
+  unsigned int size; //In bytes
+
+  std::vector<unsigned int> ibo;
 
   VAO vao;
 };
@@ -26,7 +36,7 @@ static unsigned int BufferTypeToGLType(RenderBuffer::BufferType type){
 }
 
 RenderBuffer::RenderBuffer(BufferType type)
-: _pImpl(std::make_unique<Impl>(0,0,0,0, BufferTypeToGLType(type))){
+: _pImpl(std::make_unique<Impl>(0,0,0,0, BufferTypeToGLType(type), 0, nullptr, 0)){
   this->Bind();
   
   GLCall(glGenBuffers(1, &_pImpl->iid));
@@ -41,6 +51,8 @@ RenderBuffer::RenderBuffer(BufferType type)
   GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, _pImpl->maxIboSize, nullptr, _pImpl->bufferType));
 
   this->Unbind();
+
+  _pImpl->pData = malloc(_pImpl->maxVboSize);
 }
 
 RenderBuffer::~RenderBuffer(){
@@ -50,24 +62,16 @@ RenderBuffer::~RenderBuffer(){
   GLCall(glDeleteBuffers(1, &_pImpl->iid));
 
   this->Unbind();
-}
 
-//Size in bytes
-#define Data(type, max)\
-  _pImpl->vao.Bind();\
-  if (size > _pImpl->max){\
-    GLCall(glBufferData(type, size, pData, _pImpl->bufferType));\
-    _pImpl->max = size;\
-  }\
-  else{\
-    GLCall(glBufferSubData(type, 0, size, pData));\
-  }\
+  free(_pImpl->pData);
+}
 
 void RenderBuffer::Vertex(const void* pData, unsigned int size){
-  Data(GL_ARRAY_BUFFER, maxVboSize);
+  _pImpl->pData = realloc(_pImpl->pData, _pImpl->offset+size);
+  memcpy((char*)_pImpl->pData+_pImpl->offset, pData, size);
 }
-void RenderBuffer::Index(const void* pData, unsigned int size){
-  Data(GL_ELEMENT_ARRAY_BUFFER, maxIboSize);
+void RenderBuffer::Index(const std::vector<unsigned int>& indices){
+  _pImpl->ibo.insert(_pImpl->ibo.end(), indices.begin(), indices.end());
 }
 
 void RenderBuffer::SetLayout(const std::vector<LayoutElement>& layout, unsigned int offset){
@@ -82,6 +86,24 @@ void RenderBuffer::SetLayout(const std::vector<LayoutElement>& layout, unsigned 
   vboLayout.SetOffset(offset);
 
   _pImpl->vao.AddLayout(vboLayout);
+}
+
+void RenderBuffer::Clear(){
+  //TODO: right?
+  _pImpl->offset = 0;
+  _pImpl->size = 0;
+}
+
+void RenderBuffer::Submit(){
+  _pImpl->vao.Bind();\
+  if (size > _pImpl->max){\
+    GLCall(glBufferData(type, size, pData, _pImpl->bufferType));\
+    _pImpl->max = size;\
+  }\
+  else{\
+    GLCall(glBufferSubData(type, 0, size, pData));\
+  }\
+  //TODO
 }
 
 void RenderBuffer::Bind() const{
