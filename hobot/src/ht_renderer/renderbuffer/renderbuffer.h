@@ -24,11 +24,15 @@ public:
   //Accumulates the data (Clear() and Submit() may be of help)
   //Note that binds and doesnt unbind, since would like to prevent unexpected unbinding
   void Vertex(const void* pData, unsigned int size);
-  void Index(const std::vector<unsigned int>& indices);
+  void Index(const std::vector<unsigned int>& indices, unsigned int offset); //offset to be added to each index
   void SetLayout(const std::vector<LayoutElement>& layout, unsigned int offset = 0);
 
   void Clear(); //Clear the accumulated data
   void Submit(); //Submit the accumulated data to the GPU (batching)
+
+  //In bytes
+  unsigned int VertexSize() const;
+  unsigned int IndexSize() const;
 
   void Bind() const;
   void Unbind() const;

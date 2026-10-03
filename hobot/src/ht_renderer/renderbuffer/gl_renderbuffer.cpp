@@ -17,11 +17,7 @@ struct RenderBuffer::Impl{
 
   unsigned int bufferType;
 
-  unsigned int offset; //In bytes
-
-  void* pData;
-  unsigned int size; //In bytes
-
+  std::vector<char> vbo;
   std::vector<unsigned int> ibo;
 
   VAO vao;
@@ -36,7 +32,7 @@ static unsigned int BufferTypeToGLType(RenderBuffer::BufferType type){
 }
 
 RenderBuffer::RenderBuffer(BufferType type)
-: _pImpl(std::make_unique<Impl>(0,0,0,0, BufferTypeToGLType(type), 0, nullptr, 0)){
+: _pImpl(std::make_unique<Impl>(0,0,0,0, BufferTypeToGLType(type))){
   this->Bind();
   
   GLCall(glGenBuffers(1, &_pImpl->iid));
@@ -51,8 +47,6 @@ RenderBuffer::RenderBuffer(BufferType type)
   GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, _pImpl->maxIboSize, nullptr, _pImpl->bufferType));
 
   this->Unbind();
-
-  _pImpl->pData = malloc(_pImpl->maxVboSize);
 }
 
 RenderBuffer::~RenderBuffer(){
@@ -62,16 +56,15 @@ RenderBuffer::~RenderBuffer(){
   GLCall(glDeleteBuffers(1, &_pImpl->iid));
 
   this->Unbind();
-
-  free(_pImpl->pData);
 }
 
 void RenderBuffer::Vertex(const void* pData, unsigned int size){
-  _pImpl->pData = realloc(_pImpl->pData, _pImpl->offset+size);
-  memcpy((char*)_pImpl->pData+_pImpl->offset, pData, size);
+  _pImpl->vbo.insert(_pImpl->vbo.end(), (char*)pData, (char*)pData+size);
 }
-void RenderBuffer::Index(const std::vector<unsigned int>& indices){
-  _pImpl->ibo.insert(_pImpl->ibo.end(), indices.begin(), indices.end());
+void RenderBuffer::Index(const std::vector<unsigned int>& indices, unsigned int offset){
+  for (unsigned int i = 0; i < indices.size(); i++){
+    _pImpl->ibo.push_back(indices[i]+offset);
+  }
 }
 
 void RenderBuffer::SetLayout(const std::vector<LayoutElement>& layout, unsigned int offset){
@@ -89,21 +82,28 @@ void RenderBuffer::SetLayout(const std::vector<LayoutElement>& layout, unsigned 
 }
 
 void RenderBuffer::Clear(){
-  //TODO: right?
-  _pImpl->offset = 0;
-  _pImpl->size = 0;
+  _pImpl->vbo.clear();
+  _pImpl->ibo.clear();
 }
 
 void RenderBuffer::Submit(){
-  _pImpl->vao.Bind();\
-  if (size > _pImpl->max){\
-    GLCall(glBufferData(type, size, pData, _pImpl->bufferType));\
-    _pImpl->max = size;\
-  }\
-  else{\
-    GLCall(glBufferSubData(type, 0, size, pData));\
-  }\
-  //TODO
+  _pImpl->vao.Bind();
+
+  //Vbo
+  if (_pImpl->vbo.size() > _pImpl->maxVboSize){
+    GLCall(glBufferData(GL_ARRAY_BUFFER, _pImpl->vbo.size()*2, nullptr, _pImpl->bufferType));
+    _pImpl->maxVboSize = _pImpl->vbo.size()*2;
+  }
+
+  GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, _pImpl->vbo.size(), _pImpl->vbo.data()));
+
+  //Ibo
+  if (_pImpl->ibo.size() > _pImpl->maxIboSize){
+    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, _pImpl->ibo.size()*2, nullptr, _pImpl->bufferType));
+    _pImpl->maxIboSize = _pImpl->ibo.size()*2;
+  }
+
+  GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, _pImpl->ibo.size(), _pImpl->ibo.data()));
 }
 
 void RenderBuffer::Bind() const{
@@ -112,6 +112,14 @@ void RenderBuffer::Bind() const{
 
 void RenderBuffer::Unbind() const{
   _pImpl->vao.Unbind();
+}
+
+unsigned int RenderBuffer::VertexSize() const{
+  return _pImpl->vbo.size();
+}
+
+unsigned int RenderBuffer::IndexSize() const{
+  return _pImpl->ibo.size()*sizeof(unsigned int);
 }
 
 }

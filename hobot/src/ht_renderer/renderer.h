@@ -35,10 +35,11 @@ public:
   Renderer(WindowProps props);
   ~Renderer();
 
-  //===Render (Flushing) & Clear===
+  //===Render (Flushing) & Clear (Screen)===
   void Render() const;
   void Clear(hobot::Vec4 color = hobot::Vec4(0, 0, 0, 1)) const;
-  void Submit(const std::vector<VertexData>& data);
+  //Note that indices are specific to the data submitted (nothing global)
+  void Submit(const std::vector<VertexData>& data, const std::vector<unsigned int>& index);
 
   //===Viewport & IsValid===
   //API initialized
@@ -80,7 +81,7 @@ public:
 
   //Use this if specifying both, otherwise errors are given as its trying to recompile with incompatible
   //Using this is highly advised!
-  void Shaders(const char* vStr = DefaultVertShader, const char* fStr = DefaultFragShader, bool vIsPath = false, bool fIsPath = false, Pipeline pipeline = Pipeline::Fixed) const;
+  void Shaders(const char* vStr = DefaultVertShader, const char* fStr = DefaultFragShader, bool vIsPath = false, bool fIsPath = false) const;
 
   //===Utils===
   void SetWireframe(bool enabled);

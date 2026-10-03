@@ -59,7 +59,8 @@ void NotesApp::Run(){
     const float CL_WIDTH = 2.0f/SQ_WIDTH;
     for (float i = -SQ_WIDTH; i < SQ_WIDTH/2.0f; i++){
       for (float j = -SQ_WIDTH; j < SQ_WIDTH/2.0f; j++){
-        renderer.Quad({2.0f*i/SQ_WIDTH+CL_WIDTH/2.0f, 2.0f*j/SQ_WIDTH+CL_WIDTH/2}, {CL_WIDTH, CL_WIDTH}, {rand() % 100 / 120.0f, 0, rand() % 100 / 120.0f, 1});
+        hobot::Quad quad{{2.0f*i/SQ_WIDTH+CL_WIDTH/2.0f, 2.0f*j/SQ_WIDTH+CL_WIDTH/2}, {CL_WIDTH, CL_WIDTH}, {rand() % 100 / 120.0f, 0, rand() % 100 / 120.0f, 1}};
+        renderer.Submit(quad.VertexData(), quad.IndexData()); //TODO: add
       }
     }
     //TODO: why so little FPS (maybe this loop issues)?

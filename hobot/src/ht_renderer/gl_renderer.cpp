@@ -12,40 +12,11 @@
 
 namespace hobot{
 
-struct Vertex{
-  hobot::Vec2 pos;
-  hobot::Vec4 color;
-};
-
-//Note that this defines layout for spriteVbo
-//In renderer's ctor
-struct SpriteVertex{
-  Vec2 pos;
-  Vec4 col;
-  Vec2 texCoord;
-  int sprite;
-};
-
 struct Renderer::PImpl{
-  //Fixed
-  std::vector<Vertex> fixedVbo;
-  std::vector<unsigned int> fixedIbo;
-  Shader fixedShader;
+  Shader shader;
+  RenderBuffer renderBuffer{RenderBuffer::BufferType::Dynamic};
 
-  RenderBuffer fixedBuffer{RenderBuffer::BufferType::Dynamic};
-  //Raw
-  void* pRawData = nullptr;
-  unsigned int rawSize = 0;
-  std::vector<unsigned int> rawIbo;
-
-  std::vector<LayoutElement> rawLayout;
-
-  //For proper automatic index handling
-  unsigned int rawMaxIndex = 0; //1-indexed!
-
-  Shader rawShader;
-
-  RenderBuffer rawBuffer{RenderBuffer::BufferType::Dynamic};
+  unsigned int indices = 0;
 
   //Else
   bool clear = false;
@@ -60,7 +31,7 @@ struct Renderer::PImpl{
   std::unordered_map<std::string, std::pair<std::shared_ptr<Texture>, int>> spriteTextureCache; //cache textures with their lifetime counter by path
   int maxTextureSpriteCacheLifetime = 1; //How much renders it stays cached for, e.g. 1 implies that will get deleted on next render after
   Shader spriteShader;
-  std::vector<SpriteVertex> spriteVbo;
+  //std::vector<SpriteVertex> spriteVbo;
   std::vector<unsigned int> spriteIbo;
   std::vector<std::shared_ptr<Texture>> sprites; //This keeps the sprites for spriteVbo, intex of texture pointer implies the sampler number (take mod)
 };
@@ -118,14 +89,14 @@ Renderer::Renderer(WindowProps props)
   //===Post-GLEW initialization===
 
   //RenderBuffers
-  _pImpl->fixedBuffer.SetLayout({{Type::Float, 2}, {Type::Float, 4}});
+  _pImpl->renderBuffer.SetLayout(VertexData::layout);
 
   //Shaders
-  HT_LOG_INFO("---Current default fixed vert shader---\n", this->DefaultFixedVertShader);
-  HT_LOG_INFO("---Current default fixed frag shader---\n", this->DefaultFixedFragShader);
+  HT_LOG_INFO("---Current default fixed vert shader---\n", this->DefaultVertShader);
+  HT_LOG_INFO("---Current default fixed frag shader---\n", this->DefaultFragShader);
 
   //Fixed
-  this->Shaders(DefaultFixedVertShader, DefaultFixedFragShader, false, false, Pipeline::Fixed);
+  this->Shaders(DefaultVertShader, DefaultFragShader, false, false);
 
   //Textures
   GLCall(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_pImpl->maxTextureSlots));
@@ -145,218 +116,51 @@ Renderer::Renderer(WindowProps props)
 }
 
 Renderer::~Renderer(){
-  if (_pImpl->pRawData){
-    free(_pImpl->pRawData);
-  }
 }
 
 //Buffers data every frame, but otherwise too complex
 void Renderer::Render() const{
+  //Clear
   if (_pImpl->clear){
     GLCall(glClear(GL_COLOR_BUFFER_BIT));
   }
-
-  if (_pImpl->rawIbo.empty() && _pImpl->fixedIbo.empty() && _pImpl->spriteIbo.empty()) return;
-
-  //Fixed pipeline rendering
-  if (_pImpl->fixedIbo.size() > 2){
-    HT_LOG_ASSERT(_pImpl->fixedShader.IsValid(), "Fixed shader is invalid, please specify it with Vert and Frag");
-    _pImpl->fixedBuffer.Vertex(_pImpl->fixedVbo.data(), _pImpl->fixedVbo.size()*sizeof(Vertex));
-    _pImpl->fixedBuffer.Index(_pImpl->fixedIbo.data(), _pImpl->fixedIbo.size()*sizeof(unsigned int));
-
-    _pImpl->fixedBuffer.Bind();
-    _pImpl->fixedShader.Bind();
-
-    glDrawElements(GL_TRIANGLES, _pImpl->fixedIbo.size(), GL_UNSIGNED_INT, NULL);
-
-    _pImpl->fixedBuffer.Unbind();
-    _pImpl->fixedShader.Unbind();
-
-    //Next batch prep
-    _pImpl->fixedVbo.clear();
-    _pImpl->fixedIbo.clear();
-  }
-
-  //Raw draw
-  if (_pImpl->rawIbo.size() > 2 && _pImpl->pRawData){
-    HT_LOG_ASSERT(_pImpl->rawShader.IsValid(), "Raw shader is invalid, please specify it with Vert and Frag");
-    _pImpl->rawBuffer.Vertex(_pImpl->pRawData, _pImpl->rawSize);
-    _pImpl->rawBuffer.Index(_pImpl->rawIbo.data(), _pImpl->rawIbo.size()*sizeof(unsigned int));
-
-    _pImpl->rawBuffer.Bind();
-    _pImpl->rawShader.Bind();
-
-    _pImpl->rawBuffer.SetLayout(_pImpl->rawLayout);
-
-    glDrawElements(GL_TRIANGLES, _pImpl->rawIbo.size(), GL_UNSIGNED_INT, NULL);
-
-    _pImpl->rawBuffer.Unbind();
-    _pImpl->rawShader.Unbind();
-
-    //Next batch prep
-    _pImpl->rawSize = 0;
-    _pImpl->rawIbo.clear();
-    _pImpl->rawMaxIndex = 0;
-  }
-  /*Sprites (in batches of whatever number allowed)
-  if (spriteIbo.size()){
-    spriteShader.Bind();
-    spriteVao.Bind();
-    //TODO
-  }
-  */
-
-  //Prepare for the next batch
-  this->_pImpl->clear = false;
+  _pImpl->clear = false;
   GLCall(glClearColor(0, 0, 0, 1));
 
-  /*Sprites
-  _pImpl->spriteIbo.clear();
-  _pImpl->spriteVbo.clear();
-  sprites.clear();
-  if (_pImpl->spriteTextureCache.size()){
-    for (auto&& i : _pImpl->spriteTextureCache){
-      if (i.second.second-- <= 0) _pImpl->spriteTextureCache.erase(i.first);
-    }
-  }
+  //Render
+  if (_pImpl->indices == 0) return;
 
-  */
+  _pImpl->shader.Bind();
+  _pImpl->renderBuffer.Bind();
+  GLCall(glDrawElements(GL_TRIANGLES, _pImpl->indices, GL_UNSIGNED_INT, 0));
+
+  //Next batch
+  _pImpl->renderBuffer.Clear();
+  _pImpl->indices = 0;
 }
 
-void Renderer::Submit(const std::vector<VertexData>& data){
-  //TODO: through renderbuffers or glMapBuffer?
+void Renderer::Submit(const std::vector<VertexData>& vertex, const std::vector<unsigned int>& index){
+  _pImpl->renderBuffer.Vertex(vertex.data(), vertex.size()*sizeof(VertexData));
+  _pImpl->renderBuffer.Index(index, _pImpl->renderBuffer.VertexSize());
+
+  _pImpl->indices += index.size();
 }
 
-//pos = bottom-left vertex pos, dimensions = width, height
-void Renderer::Quad(hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color) const{
-  this->Quad(pos, {pos.x+dimensions.x, pos.y}, {pos.x, pos.y+dimensions.y}, {pos.x+dimensions.x, pos.y+dimensions.y}, color, color, color, color, false);
-}
-static float AtFor2Pts(float x, hobot::Vec2 p1, hobot::Vec2 p2){
-  return (p1.x != p2.x) && (p1.x*p2.x - p1.y*p2.y-x*(p2.y-p1.y))/(p1.x-p2.x);
-}
-//If 2 points divide the remaining 2 points so that they are on opposite sides of a diagonal, those 2 endpts can be used to draw 2 triangles no matter what order
-//This orders the indices to disregard invalid order of input
-#define IfOrder(endpt1, endpt2, other1, other2)\
-if ((pos##other1.y > AtFor2Pts(pos##other1.x, pos##endpt1, pos##endpt2) && pos##other2.y < AtFor2Pts(pos##other2.x, pos##endpt1, pos##endpt2)) ||\
-    (pos##other1.y < AtFor2Pts(pos##other1.x, pos##endpt1, pos##endpt2) && pos##other2.y > AtFor2Pts(pos##other2.x, pos##endpt1, pos##endpt2))){\
-  orderedIndices[0] = other1;\
-  orderedIndices[1] = endpt1;\
-  orderedIndices[2] = endpt2;\
-  orderedIndices[3] = other2;\
+void Renderer::FragShader(const char* string, bool isPath, bool recompile) const{
+  _pImpl->shader.Frag(string, isPath, recompile);
 }
 
-#define PushIboQuad()\
-  if (orderedMode){\
-    int orderedIndices[4] = {0, 1, 2, 3};\
-    IfOrder(0, 1, 2, 3)\
-    else IfOrder(0, 2, 1, 3)\
-    else IfOrder(1, 2, 0, 3)\
-    else IfOrder(0, 3, 1, 2)\
-    else IfOrder(1, 3, 0, 2)\
-    else IfOrder(3, 2, 0, 1);\
-    ibo.push_back(offset+orderedIndices[0]);\
-    ibo.push_back(offset+orderedIndices[1]);\
-    ibo.push_back(offset+orderedIndices[2]);\
-    ibo.push_back(offset+orderedIndices[1]);\
-    ibo.push_back(offset+orderedIndices[2]);\
-    ibo.push_back(offset+orderedIndices[3]);\
-  } else{\
-    ibo.push_back(offset+0);\
-    ibo.push_back(offset+1);\
-    ibo.push_back(offset+2);\
-    ibo.push_back(offset+1);\
-    ibo.push_back(offset+2);\
-    ibo.push_back(offset+3);\
-  }
-
-void Renderer::Quad(hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2, hobot::Vec2 pos3,
-                    hobot::Vec4 col0, hobot::Vec4 col1, hobot::Vec4 col2, hobot::Vec4 col3, bool orderedMode) const{
-  auto& vbo = _pImpl->fixedVbo;
-  auto& ibo = _pImpl->fixedIbo;
-
-  int offset = vbo.size();
-  //Vbo
-  vbo.emplace_back(Vertex{pos0, col0});
-  vbo.emplace_back(Vertex{pos1, col1});
-  vbo.emplace_back(Vertex{pos2, col2});
-  vbo.emplace_back(Vertex{pos3, col3});
-
-  //Ibo
-  PushIboQuad();
-}
-
-//pos = bottom-left vertex pos, dimensions = base width, height, triangle = right
-void Renderer::Trig(hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color) const{
-  this->Trig(pos, {pos.x+dimensions.x, pos.y}, {pos.x, pos.y + dimensions.y}, color, color, color);
-}
-
-void Renderer::Trig(hobot::Vec2 pos0, hobot::Vec2 pos1, hobot::Vec2 pos2,
-          hobot::Vec4 col0, hobot::Vec4 col1, hobot::Vec4 col2) const{
-  auto& vbo = _pImpl->fixedVbo;
-  auto& ibo = _pImpl->fixedIbo;
-  int offset = vbo.size();
-  //Vbo
-  vbo.emplace_back(Vertex{pos0, col0});
-  vbo.emplace_back(Vertex{pos1, col1});
-  vbo.emplace_back(Vertex{pos2, col2});
-
-  //Ibo
-  ibo.push_back(offset);
-  ibo.push_back(offset+1);
-  ibo.push_back(offset+2);
-
-}
-
-void Renderer::Reg(hobot::Vec2 pos, float r, int vertices, hobot::Vec4 color, float rotation) const{
-  this->Reg(pos, r, vertices, color, color, rotation);
-}
-void Renderer::Reg(hobot::Vec2 pos, float r, int vertices, hobot::Vec4 centerColor, hobot::Vec4 circumColor, float rotation) const{
-  for (int i = 0; i < vertices; i++){
-    float angle1 = ((float)i/(float)vertices)*2.0f*PI<float>() + (rotation);
-    float angle2 = ((float)(i+1)/(float)vertices)*2.0f*PI<float>() + (rotation);
-    hobot::Vec2 p1{pos.x+std::cos(angle1)*r,pos.y+std::sin(angle1)*r}, p2{pos.x+std::cos(angle2)*r,pos.y+std::sin(angle2)*r};
-
-    hobot::Vec4 c1, c2;
-    c1 = c2 = circumColor;
-
-    this->Trig(pos, p1, p2, centerColor, c1, c2);
-  }
-}
-
-void Renderer::FragShader(const char* string, bool isPath, Pipeline pipeline, bool recompile) const{
-  switch (pipeline){
-    case Pipeline::Fixed:
-      _pImpl->fixedShader.Frag(string, isPath, recompile);
-    break;
-    case Pipeline::Raw:
-      _pImpl->rawShader.Frag(string, isPath, recompile);
-    break;
-    case Pipeline::Sprite:
-      _pImpl->spriteShader.Frag(string, isPath, recompile);
-    break;
-  }
-}
-void Renderer::VertShader(const char* string, bool isPath, Pipeline pipeline, bool recompile) const{
-  switch (pipeline){
-    case Pipeline::Fixed:
-      _pImpl->fixedShader.Vert(string, isPath, recompile);
-    break;
-    case Pipeline::Raw:
-      _pImpl->rawShader.Vert(string, isPath, recompile);
-    break;
-    case Pipeline::Sprite:
-      _pImpl->spriteShader.Vert(string, isPath, recompile);
-    break;
-  }
+void Renderer::VertShader(const char* string, bool isPath, bool recompile) const{
+  _pImpl->shader.Vert(string, isPath, recompile);
 }
 
 //Use this if specifying both, otherwise errors are given as its trying to recompile with incompatible
-void Renderer::Shaders(const char* vStr, const char* fStr, bool vIsPath, bool fIsPath, Pipeline pipeline)const{
-  this->VertShader(vStr, vIsPath, pipeline, false);
-  this->FragShader(fStr, fIsPath, pipeline, true);
+void Renderer::Shaders(const char* vStr, const char* fStr, bool vIsPath, bool fIsPath)const{
+  this->VertShader(vStr, vIsPath, false);
+  this->FragShader(fStr, fIsPath, true);
 }
 
-const char* Renderer::DefaultFixedVertShader = 
+const char* Renderer::DefaultVertShader = 
 "#version 330 core\n"
 "layout (location = 0) in vec2 iPos;\n"
 "layout (location = 1) in vec4 iColor;\n"
@@ -366,7 +170,7 @@ const char* Renderer::DefaultFixedVertShader =
 "  vColor = iColor;\n"
 "}\n";
 
-const char* Renderer::DefaultFixedFragShader = 
+const char* Renderer::DefaultFragShader = 
 "#version 330 core\n"
 "layout (location = 0) out vec4 oColor;\n"
 "in vec4 vColor;\n"
@@ -374,6 +178,7 @@ const char* Renderer::DefaultFixedFragShader =
 "  oColor = vColor;\n"
 "}\n";
 
+/*
 const char* Renderer::DefaultSpriteFragShader =
 "#version 330 core\n"
 "layout (location = 0) out vec4 oColor;\n"
@@ -399,34 +204,22 @@ const char* Renderer::DefaultSpriteVertShader =
 "  vSprite = iSprite;\n"
 "  vTexCoord = iTexCoord;\n"
 "}\n";
+*/
 
-#define UniformLogic() \
-  switch (pipeline){\
-    case Pipeline::Fixed:\
-      _pImpl->fixedShader.SetUniform(name, v);\
-    break;\
-    case Pipeline::Raw:\
-      _pImpl->rawShader.SetUniform(name, v);\
-    break;\
-    case Pipeline::Sprite:\
-      _pImpl->spriteShader.SetUniform(name, v);\
-    break;\
-  }
-
-void Renderer::Uniform(const char* name, int v,         Pipeline pipeline) const{
-  UniformLogic();
+void Renderer::Uniform(const char* name, int v) const{
+  _pImpl->shader.SetUniform(name, v);\
 }
-void Renderer::Uniform(const char* name, float v,       Pipeline pipeline) const{
-  UniformLogic();
+void Renderer::Uniform(const char* name, float v) const{
+  _pImpl->shader.SetUniform(name, v);\
 }
-void Renderer::Uniform(const char* name, hobot::Mat4 v, Pipeline pipeline) const{
-  UniformLogic();
+void Renderer::Uniform(const char* name, hobot::Mat4 v) const{
+  _pImpl->shader.SetUniform(name, v);\
 }
-void Renderer::Uniform(const char* name, hobot::Vec4 v, Pipeline pipeline) const{
-  UniformLogic();
+void Renderer::Uniform(const char* name, hobot::Vec4 v) const{
+  _pImpl->shader.SetUniform(name, v);\
 }
-void Renderer::Uniform(const char* name, hobot::Vec2 v, Pipeline pipeline) const{
-  UniformLogic();
+void Renderer::Uniform(const char* name, hobot::Vec2 v) const{
+  _pImpl->shader.SetUniform(name, v);\
 }
 
 void Renderer::Clear(hobot::Vec4 color) const{
@@ -465,42 +258,6 @@ hobot::Vec4 Renderer::GetViewport() const{
   return _pImpl->viewport;
 }
 
-//Custom pipeline
-void Renderer::Raw(const void* data, unsigned int size, const std::vector<unsigned int>& indices) const{
-  /*Raw IBO
-  unsigned int& maxIndex = _pImpl->rawMaxIndex;
-  unsigned int newMaxIndex = maxIndex;
-
-  for (int i = 0; i < indices.size(); i++){
-    newMaxIndex = std::max(newMaxIndex, indices[i]+maxIndex);
-    _pImpl->rawIbo.emplace_back(indices[i]+maxIndex);
-  }
-
-  maxIndex = newMaxIndex+1;
-
-  auto oldSize = _pImpl->rawSize;
-  _pImpl->rawSize += size;
-  if (_pImpl->rawSize > _pImpl->maxRawDataSize){
-    _pImpl->pRawData = realloc(_pImpl->pRawData, _pImpl->rawSize);
-    _pImpl->maxRawDataSize = _pImpl->rawSize;
-  }
-  std::memcpy(((char*)_pImpl->pRawData)+oldSize, data, size);
-  */
-}
-
-void Renderer::RawLayout(const std::vector<LayoutElement>& layout) const{
-  _pImpl->rawBuffer.Bind();
-
-  GLCall(glBindBuffer(GL_ARRAY_BUFFER, _pImpl->vboID));
-  GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _pImpl->iboID));
-  _pImpl->rawLayout.Reset();
-  for (int i = 0; i < layout.size(); i++){
-    _pImpl->rawLayout.Push(TypeToGLType(layout[i].type), layout[i].count, false);
-  }
-
-  _pImpl->rawBuffer.Unbind();
-}
-
 void Renderer::SetWireframe(bool enabled){
   if (enabled) {
     GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
@@ -509,6 +266,7 @@ void Renderer::SetWireframe(bool enabled){
   }
 }
 
+/*
 void Renderer::Sprite(std::string path, hobot::Vec2 pos, hobot::Vec2 dimensions, hobot::Vec4 color) const{
   this->Sprite(path, pos, {pos.x+dimensions.x, pos.y}, {pos.x, pos.y+dimensions.y}, {pos.x+dimensions.x, pos.y+dimensions.y},
                      color, color, color, color,
@@ -540,5 +298,6 @@ void Renderer::Sprite(std::string path, hobot::Vec2 pos0, hobot::Vec2 pos1, hobo
   //Ibo
   PushIboQuad();
 }
+*/
 
 }

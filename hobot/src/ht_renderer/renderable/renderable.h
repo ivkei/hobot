@@ -3,12 +3,18 @@
 #include"ht_math/math.h"
 #include"ht_file/file.h"
 
+#include<vector>
+
+#include"ht_renderer/layoutelement.h"
+
 namespace hobot{
 //TODO: try polymorphism (TOOOOOOOOOOOOOOOOO LAGGY (probably))
 
 struct VertexData{
   hobot::Vec2 pos;
   hobot::Vec4 col;
+  
+  inline static const std::vector<LayoutElement> layout = {{Type::Float, 2}, {Type::Float, 4}};
 };
 
 struct Quad{
