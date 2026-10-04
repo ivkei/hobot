@@ -31,6 +31,7 @@ struct Quad{
   hobot::Vec4 col3;
 
   std::vector<VertexData> VertexData();
+  std::vector<unsigned int> IndexData();
 };
 
 struct Trig{
@@ -43,6 +44,7 @@ struct Trig{
   hobot::Vec4 col2;
 
   std::vector<VertexData> VertexData();
+  std::vector<unsigned int> IndexData();
 };
 
 //Regular polygon
@@ -56,6 +58,7 @@ struct Reg{
   //TODO: into pallete?
 
   std::vector<VertexData> VertexData();
+  std::vector<unsigned int> IndexData();
 };
 
 }

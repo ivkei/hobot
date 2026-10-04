@@ -24,7 +24,7 @@ void NotesApp::Run(){
   float deltaSeconds;
 
   //Shader
-  renderer.Shaders(RES_DIR"/shaders/lightvert.glsl", RES_DIR"/shaders/lightfrag.glsl", true, true, hobot::Renderer::Pipeline::Fixed);
+  renderer.Shaders(RES_DIR"/shaders/lightvert.glsl", RES_DIR"/shaders/lightfrag.glsl", true, true);
 
   //FPS
   float fpsTimer = 0;
@@ -60,7 +60,7 @@ void NotesApp::Run(){
     for (float i = -SQ_WIDTH; i < SQ_WIDTH/2.0f; i++){
       for (float j = -SQ_WIDTH; j < SQ_WIDTH/2.0f; j++){
         hobot::Quad quad{{2.0f*i/SQ_WIDTH+CL_WIDTH/2.0f, 2.0f*j/SQ_WIDTH+CL_WIDTH/2}, {CL_WIDTH, CL_WIDTH}, {rand() % 100 / 120.0f, 0, rand() % 100 / 120.0f, 1}};
-        renderer.Submit(quad.VertexData(), quad.IndexData()); //TODO: add
+        renderer.Submit(quad.VertexData(), quad.IndexData()); //TODO: return types optimize
       }
     }
     //TODO: why so little FPS (maybe this loop issues)?

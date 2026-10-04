@@ -20,6 +20,10 @@ std::vector<VertexData> Quad::VertexData(){
   return data;
 }
 
+std::vector<unsigned int> Quad::IndexData(){
+  return {0, 1, 2, 1, 2, 3};
+}
+
 std::vector<VertexData> Trig::VertexData(){
   std::vector<class VertexData> data;
 
@@ -30,22 +34,40 @@ std::vector<VertexData> Trig::VertexData(){
   return data;
 }
 
+std::vector<unsigned int> Trig::IndexData(){
+  return {0, 1, 2};
+}
+
 std::vector<VertexData> Reg::VertexData(){
 
   std::vector<class VertexData> data;
 
+  data.emplace_back(cent, centCol);
+
   for (int i = 0; i < nVert; i++){
     float angle1 = ((float)i/(float)nVert)*2.0f*PI<float>() + (rotation);
     float angle2 = ((float)(i+1)/(float)nVert)*2.0f*PI<float>() + (rotation);
-    hobot::Vec2 p1{cent.x+std::cos(angle1)*inrad,cent.y+std::sin(angle1)*inrad}, p2{cent.x+std::cos(angle2)*inrad,cent.y+std::sin(angle2)*inrad};
+    hobot::Vec2 p1{cent.x+std::cos(angle1)*inrad,cent.y+std::sin(angle1)*inrad},
+                p2{cent.x+std::cos(angle2)*inrad,cent.y+std::sin(angle2)*inrad};
 
-    data.emplace_back(cent, centCol);
     data.emplace_back(p1, circCol);
     data.emplace_back(p2, circCol);
   }
 
   return data;
 
+}
+
+std::vector<unsigned int> Reg::IndexData(){
+  std::vector<unsigned int> data;
+
+  for (int i = 1; i <= nVert; i++){
+    data.push_back(0);
+    data.push_back(i);
+    data.push_back((i+1)%nVert);
+  }
+
+  return data;
 }
 
 }

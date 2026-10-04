@@ -39,7 +39,7 @@ public:
   void Render() const;
   void Clear(hobot::Vec4 color = hobot::Vec4(0, 0, 0, 1)) const;
   //Note that indices are specific to the data submitted (nothing global)
-  void Submit(const std::vector<VertexData>& data, const std::vector<unsigned int>& index);
+  void Submit(const std::vector<VertexData>& data, const std::vector<unsigned int>& index) const;
 
   //===Viewport & IsValid===
   //API initialized

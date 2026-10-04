@@ -139,7 +139,7 @@ void Renderer::Render() const{
   _pImpl->indices = 0;
 }
 
-void Renderer::Submit(const std::vector<VertexData>& vertex, const std::vector<unsigned int>& index){
+void Renderer::Submit(const std::vector<VertexData>& vertex, const std::vector<unsigned int>& index)const{
   _pImpl->renderBuffer.Vertex(vertex.data(), vertex.size()*sizeof(VertexData));
   _pImpl->renderBuffer.Index(index, _pImpl->renderBuffer.VertexSize());
 
