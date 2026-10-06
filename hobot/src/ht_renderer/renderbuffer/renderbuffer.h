@@ -28,7 +28,7 @@ public:
   void SetLayout(const std::vector<LayoutElement>& layout, unsigned int offset = 0);
 
   void Clear(); //Clear the accumulated data
-  void Submit(); //Submit the accumulated data to the GPU (batching)
+  void Submit(); //Submit the accumulated data to the GPU (batching), doesn't clear the buffer
 
   //In bytes
   unsigned int VertexSize() const;

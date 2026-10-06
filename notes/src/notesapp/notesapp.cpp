@@ -54,16 +54,34 @@ void NotesApp::Run(){
 
     renderer.Clear({0.1f, 0.1f, 0.1f, 1.0f});
 
-    srand(0);
-    const float SQ_WIDTH = 256.0f;
-    const float CL_WIDTH = 2.0f/SQ_WIDTH;
-    for (float i = -SQ_WIDTH; i < SQ_WIDTH/2.0f; i++){
-      for (float j = -SQ_WIDTH; j < SQ_WIDTH/2.0f; j++){
-        hobot::Quad quad{{2.0f*i/SQ_WIDTH+CL_WIDTH/2.0f, 2.0f*j/SQ_WIDTH+CL_WIDTH/2}, {CL_WIDTH, CL_WIDTH}, {rand() % 100 / 120.0f, 0, rand() % 100 / 120.0f, 1}};
-        renderer.Submit(quad.VertexData(), quad.IndexData()); //TODO: return types optimize
-      }
-    }
+    //srand(0);
+    //const float SQ_WIDTH = 256.0f;
+    //const float CL_WIDTH = 2.0f/SQ_WIDTH;
+    //for (float i = -SQ_WIDTH; i < SQ_WIDTH/2.0f; i++){
+    //  for (float j = -SQ_WIDTH; j < SQ_WIDTH/2.0f; j++){
+    //    hobot::Quad quad{{2.0f*i/SQ_WIDTH+CL_WIDTH/2.0f, 2.0f*j/SQ_WIDTH+CL_WIDTH/2}, {CL_WIDTH, CL_WIDTH}, {rand() % 100 / 120.0f, 0, rand() % 100 / 120.0f, 1}};
+    //    renderer.Submit(quad.VertexData(), quad.IndexData()); //TODO: return types optimize
+    //  }
+    //}
     //TODO: why so little FPS (maybe this loop issues)?
+
+    hobot::Trig trig{{-0.5f, -0.25f}, {0.0f, 0.5f}, {0.5f, -0.25f}, {0, 1, 1, 1}, {1, 0, 1, 1}, {1, 1, 0, 1}};
+    renderer.Submit(trig.VertexData(), trig.IndexData());
+    //TODO: Why doesn't this work?
+    //TODO: clear all DEBUGs
+
+    auto vData = trig.VertexData();
+    auto iData = trig.IndexData();
+
+    HT_LOG_INFO("===Indices===");
+    for (auto i : iData){
+      HT_LOG_INFO(i);
+    }
+
+    HT_LOG_INFO("===Vertices===");
+    for (auto i : vData){
+      HT_LOG_INFO(i.pos, " ", i.col);
+    }
 
     renderer.Render();
     _pWindow->PollEvents();

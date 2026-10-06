@@ -130,9 +130,24 @@ void Renderer::Render() const{
   //Render
   if (_pImpl->indices == 0) return;
 
+  //DEBUG
+  HT_LOG_INFO("indices: ", _pImpl->indices);
+  HT_LOG_INFO("renderBuffer.IndexSize(): ", _pImpl->renderBuffer.IndexSize()/sizeof(unsigned int));
+  HT_LOG_INFO("renderBuffer.VertexSize(): ", _pImpl->renderBuffer.VertexSize()/sizeof(VertexData));
+
   _pImpl->shader.Bind();
   _pImpl->renderBuffer.Bind();
+  _pImpl->renderBuffer.Submit();
+
   GLCall(glDrawElements(GL_TRIANGLES, _pImpl->indices, GL_UNSIGNED_INT, 0));
+
+  //DEBUG
+  //std::vector<unsigned int> dInd = {0, 1, 2};
+  //std::vector<VertexData> dVbo = {{{-0.5f, -0.25f}, {0, 1, 1, 1}}, {{0.0f, 0.5f}, {0, 1, 1, 1}}, {{0.0f, 0.0f}, {0, 1, 1, 1}}};
+
+  //GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, 3*sizeof(VertexData), dVbo.data()));
+
+  //GLCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, dInd.data()));
 
   //Next batch
   _pImpl->renderBuffer.Clear();
@@ -140,8 +155,8 @@ void Renderer::Render() const{
 }
 
 void Renderer::Submit(const std::vector<VertexData>& vertex, const std::vector<unsigned int>& index)const{
+  _pImpl->renderBuffer.Index(index, _pImpl->renderBuffer.VertexSize()/sizeof(VertexData));
   _pImpl->renderBuffer.Vertex(vertex.data(), vertex.size()*sizeof(VertexData));
-  _pImpl->renderBuffer.Index(index, _pImpl->renderBuffer.VertexSize());
 
   _pImpl->indices += index.size();
 }
