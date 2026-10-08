@@ -109,14 +109,14 @@ void RenderBuffer::Submit(){
   GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, _pImpl->ibo.size(), _pImpl->ibo.data()));
 
   //DEBUG
-  for (int i = 0; i < _pImpl->vbo.size()/sizeof(VertexData); i++){
-    VertexData data = *(VertexData*)(_pImpl->vbo.data()+i*sizeof(VertexData));
-    HT_LOG_INFO(data.pos, " ", data.col);
-  }
+  //for (int i = 0; i < _pImpl->vbo.size()/sizeof(VertexData); i++){
+  //  VertexData data = *(VertexData*)(_pImpl->vbo.data()+i*sizeof(VertexData));
+  //  HT_LOG_INFO(data.pos, " ", data.col);
+  //}
 
-  for (int i = 0; i < _pImpl->ibo.size(); i++){
-    HT_LOG_INFO(_pImpl->ibo[i]);
-  }
+  //for (int i = 0; i < _pImpl->ibo.size(); i++){
+  //  HT_LOG_INFO(_pImpl->ibo[i]);
+  //}
 }
 
 void RenderBuffer::Bind() const{

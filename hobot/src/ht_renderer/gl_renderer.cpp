@@ -135,11 +135,18 @@ void Renderer::Render() const{
   HT_LOG_INFO("renderBuffer.IndexSize(): ", _pImpl->renderBuffer.IndexSize()/sizeof(unsigned int));
   HT_LOG_INFO("renderBuffer.VertexSize(): ", _pImpl->renderBuffer.VertexSize()/sizeof(VertexData));
 
+  int size = 0;
+  GLCall(glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &size));
+  HT_LOG_INFO("VertexSize (GPU): ", size);
+
+  GLCall(glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size));
+  HT_LOG_INFO("IndexSize (GPU): ", size);
+
   _pImpl->shader.Bind();
   _pImpl->renderBuffer.Bind();
   _pImpl->renderBuffer.Submit();
 
-  GLCall(glDrawElements(GL_TRIANGLES, _pImpl->indices, GL_UNSIGNED_INT, 0));
+  GLCall(glDrawElements(GL_TRIANGLES, _pImpl->indices, GL_UNSIGNED_INT, NULL));
 
   //DEBUG
   //std::vector<unsigned int> dInd = {0, 1, 2};

@@ -23,7 +23,7 @@ public:
   //Size in bytes
   //Accumulates the data (Clear() and Submit() may be of help)
   //Note that binds and doesnt unbind, since would like to prevent unexpected unbinding
-  void Vertex(const void* pData, unsigned int size);
+  void Vertex(const void* pData, unsigned int size); //Don't couple this to VertexData
   void Index(const std::vector<unsigned int>& indices, unsigned int offset); //offset to be added to each index
   void SetLayout(const std::vector<LayoutElement>& layout, unsigned int offset = 0);
 

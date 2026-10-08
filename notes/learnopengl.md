@@ -331,7 +331,7 @@ glEnableVertexAttribArray(0); //Enable at index 0 (attribute)
 * Since we dont want to repeat this glVertexAttribPointer stuff every time
 we bind a different VBO, we use VAOs
 * Associates vertex attrib calls and VBOs and stores them (+Index buffer).
-  - Dont have to bind VBO if bind VAO!
+  - Dont have to bind VBO if bind VAO! (IT STORES IT)
 * OpenGL core requires 1.
 * When have multiple objects, 1 VAO per each.
 ```c
